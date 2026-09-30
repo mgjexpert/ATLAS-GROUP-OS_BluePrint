@@ -5,8 +5,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=atlas
-Group=atlas
+User=atlas-agent
+Group=atlas-agent
 Environment=HOME=/srv/atlas/home
 EnvironmentFile=/etc/atlas/atlas-agent-engine.env
 WorkingDirectory=/srv/atlas/vendor/claude-code

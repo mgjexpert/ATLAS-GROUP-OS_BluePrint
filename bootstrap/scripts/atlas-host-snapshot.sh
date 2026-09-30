@@ -8,7 +8,7 @@ OUT="$BASE/$STAMP"
 CURRENT="$BASE/current"
 
 mkdir -p "$OUT"
-chown root:atlas "$OUT"
+chown root:atlas-agent "$OUT"
 chmod 0750 "$OUT"
 
 jq -n   --arg captured_at "$(date -u +%FT%TZ)"   --arg hostname "$(hostname -f 2>/dev/null || hostname)"   --arg kernel "$(uname -srmo)"   --arg uptime "$(uptime -p 2>/dev/null || true)"   '{
@@ -83,12 +83,12 @@ fi
 rm -rf "$CURRENT"
 mkdir -p "$CURRENT"
 cp -a "$OUT/." "$CURRENT/"
-chown -R root:atlas "$CURRENT"
+chown -R root:atlas-agent "$CURRENT"
 find "$CURRENT" -type d -exec chmod 0750 {} +
 find "$CURRENT" -type f -exec chmod 0640 {} +
 
 printf '%s\n' "$STAMP" > "$BASE/LATEST"
-chown root:atlas "$BASE/LATEST"
+chown root:atlas-agent "$BASE/LATEST"
 chmod 0640 "$BASE/LATEST"
 
 echo "Sanitized Atlas snapshot written: $OUT"

@@ -4,7 +4,7 @@ This directory contains the first safe deployment scaffold for the Atlas HQ VPS.
 
 ## V0 security model
 
-Atlas.Dev-00 does **not** receive direct Docker socket access and does not receive root.
+Atlas.Dev-00 runs under a dedicated Linux service user, `atlas-agent`. It does **not** receive root, sudo membership, Docker-group membership, or direct Docker socket access.
 
 A root-owned collector creates a sanitized infrastructure snapshot. The agent receives only the resulting evidence files.
 
@@ -19,7 +19,7 @@ sanitized evidence
         |
 /var/lib/atlas/inventory/current
         |
-Atlas.Dev-00 (user: atlas)
+Atlas.Dev-00 (user: atlas-agent)
         |
 FCC Agent Engine + Claude Code + ECC
         |

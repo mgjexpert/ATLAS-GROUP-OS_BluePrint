@@ -2,7 +2,7 @@
 set -euo pipefail
 umask 027
 
-ATLAS_USER="atlas"
+ATLAS_USER="atlas-agent"
 ATLAS_HOME="/srv/atlas/home"
 ENGINE="/srv/atlas/vendor/claude-code"
 WORK="/srv/atlas/workspaces/atlas-dev-00"
@@ -28,16 +28,16 @@ if grep -Eq 'CHANGE_ME' "$ENV_FILE"; then
 fi
 
 rm -rf "$MISSION"
-install -d -o root -g atlas -m 0750 "$MISSION"
+install -d -o root -g atlas-agent -m 0750 "$MISSION"
 
 # Deterministic preparation, outside model control.
 git clone --depth 1   https://github.com/mgjexpert/ATLAS-GROUP-OS_BluePrint.git   "$MISSION/blueprint"
 
-install -d -o root -g atlas -m 0750 "$MISSION/evidence"
+install -d -o root -g atlas-agent -m 0750 "$MISSION/evidence"
 cp -a "$EVIDENCE/." "$MISSION/evidence/"
 
 # Enforce blueprint/evidence as filesystem read-only for the atlas group.
-chown -R root:atlas "$MISSION/blueprint" "$MISSION/evidence"
+chown -R root:atlas-agent "$MISSION/blueprint" "$MISSION/evidence"
 find "$MISSION/blueprint" "$MISSION/evidence" -type d -exec chmod 0750 {} +
 find "$MISSION/blueprint" "$MISSION/evidence" -type f -exec chmod 0640 {} +
 
@@ -45,7 +45,7 @@ find "$MISSION/blueprint" "$MISSION/evidence" -type f -exec chmod 0640 {} +
 install -d -o "$ATLAS_USER" -g "$ATLAS_USER" -m 0750 "$MISSION/output"
 
 # Execute the harness as the non-root atlas user.
-# The V0 agent gets no Bash, web or Edit tools.
+# The V0 agent gets no Bash, web or Edit tools, and the service user has no sudo/docker membership.
 runuser -u "$ATLAS_USER" -- bash -c '
   set -euo pipefail
   ENV_FILE="$1"

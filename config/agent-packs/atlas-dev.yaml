@@ -4,7 +4,7 @@ kind: AgentPack
 metadata:
   id: atlas-dev-00
   name: Atlas.Dev-00
-  version: 0.1.0
+  version: 0.1.1
 
 identity:
   role: Founding Engineer
@@ -39,14 +39,18 @@ engineering:
     - surgical-changes
     - goal-driven-verification
 
+evidence:
+  source: sanitized-host-snapshot
+  direct_docker_socket: false
+  raw_production_logs: false
+  secret_values: false
+
 tools:
   allowed:
-    - system.read
-    - docker.inspect
-    - docker.logs.read
-    - filesystem.workspace
-    - github.read
-    - network.healthcheck
+    - filesystem.mission.read
+    - filesystem.mission.write
+    - inventory.snapshot.read
+    - github.public.read
   approval_required:
     - github.write
     - docker.restart
@@ -54,11 +58,15 @@ tools:
     - docker.start
     - filesystem.system.write
   forbidden:
+    - shell.production
+    - docker.socket
     - payments.execute
     - xpayments.root
     - database.drop
+    - database.write.production
     - secrets.export
     - firewall.modify
+    - dns.modify
     - production.delete
 
 outputs:

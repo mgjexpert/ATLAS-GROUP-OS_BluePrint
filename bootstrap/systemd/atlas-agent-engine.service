@@ -1,0 +1,24 @@
+[Unit]
+Description=Atlas Agent Engine (FCC)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=atlas
+Group=atlas
+Environment=HOME=/srv/atlas/home
+EnvironmentFile=/etc/atlas/atlas-agent-engine.env
+WorkingDirectory=/srv/atlas/vendor/claude-code
+ExecStart=/srv/atlas/home/.local/bin/uv run --frozen fcc-server
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/atlas /var/log/atlas
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

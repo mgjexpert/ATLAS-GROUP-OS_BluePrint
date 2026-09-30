@@ -49,11 +49,11 @@ host + Docker
   -> Atlas.Dev-00 read access
 ```
 
-The agent itself runs as the non-root Linux user `atlas`.
+The agent itself runs as the dedicated non-root Linux service user `atlas-agent`. This account must not belong to `sudo`, `docker`, `adm`, or other privileged groups. An existing human/admin account named `atlas` is not reused.
 
 ## Phase 0 — prerequisites
 
-- non-root Linux service account;
+- dedicated non-root Linux service account (`atlas-agent`) with no sudo/docker membership;
 - dedicated directories;
 - secret environment file outside Git;
 - local-only FCC listener;

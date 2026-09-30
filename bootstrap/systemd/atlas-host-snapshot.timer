@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh Atlas sanitized host inventory hourly
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Persistent=true
+RandomizedDelaySec=2min
+Unit=atlas-host-snapshot.service
+
+[Install]
+WantedBy=timers.target

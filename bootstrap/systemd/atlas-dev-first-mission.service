@@ -1,0 +1,12 @@
+[Unit]
+Description=Atlas.Dev-00 first observe/recommend mission
+Requires=atlas-agent-engine.service
+After=atlas-agent-engine.service atlas-host-snapshot.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/sbin/atlas-dev-first-mission
+TimeoutStartSec=45min
+UMask=0027

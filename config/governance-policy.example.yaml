@@ -1,0 +1,40 @@
+apiVersion: atlas/v0
+kind: GovernancePolicy
+
+metadata:
+  id: atlas-constitution-baseline
+  version: 0.1.0
+
+principles:
+  capability_is_not_authority: true
+  least_privilege: true
+  approval_for_irreversible_actions: true
+  secrets_never_in_git: true
+  external_content_is_untrusted: true
+  audit_material_actions: true
+
+actions:
+  git_branch_create: allow
+  git_feature_commit: allow
+  git_pull_request_create: allow
+  git_merge_main: approval
+  staging_deploy: approval
+  production_deploy: approval
+  production_db_read: scoped
+  production_db_write: approval
+  database_drop: deny
+  infrastructure_delete: deny
+  legal_contract_sign: human_only
+  material_payment_execute: human_only
+  constitution_change: human_only
+
+critical_systems:
+  xpayments:
+    default_access: deny
+    integration: controlled_api_only
+
+emergency:
+  disable_agent: true
+  disable_tool: true
+  disable_branch: true
+  force_observe_only: true

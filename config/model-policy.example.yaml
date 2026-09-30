@@ -1,0 +1,41 @@
+apiVersion: atlas/v0
+kind: ModelPolicy
+
+metadata:
+  id: atlas-default-model-policy
+  version: 0.1.0
+
+strategy: free-first
+
+routing:
+  deterministic:
+    prefer_tools_without_llm: true
+
+  general:
+    primary: openrouter/free
+    fallbacks:
+      - openrouter/free
+      - premium-general
+
+  coding:
+    primary: free-coding-primary
+    fallbacks:
+      - free-coding-secondary
+      - premium-coding
+
+  executive:
+    primary: openrouter/free
+    fallbacks:
+      - premium-reasoning
+
+  critical:
+    primary: premium-reviewed
+
+budgets:
+  require_agent_budget: true
+  premium_spend_requires_policy: true
+
+notes:
+  - Free model availability and limits are volatile; resolve aliases at runtime.
+  - Never treat a free endpoint as a production SLA without fallback.
+  - Log provider, model, tokens and attributed cost for every run.

@@ -45,8 +45,14 @@ if (( NODE_MAJOR < 18 )); then
   exit 2
 fi
 
+if ! getent group atlas >/dev/null 2>&1; then
+  groupadd --system atlas
+fi
+
 if ! id atlas >/dev/null 2>&1; then
-  useradd --system --create-home --home-dir "$ATLAS_HOME" --shell /bin/bash atlas
+  useradd --system --gid atlas --create-home --home-dir "$ATLAS_HOME" --shell /bin/bash atlas
+else
+  usermod -a -G atlas atlas
 fi
 
 install -d -o atlas -g atlas -m 0750 "$ATLAS_ROOT" "$ATLAS_HOME" "$VENDOR_DIR" "$WORKSPACE_DIR"
@@ -63,28 +69,27 @@ fi
 
 if [[ ! -x "$ATLAS_HOME/.local/bin/uv" ]]; then
   echo "Installing uv for atlas service account from the official Astral installer..."
-  sudo -u atlas -H bash -lc 'curl -LsSf https://astral.sh/uv/install.sh | sh'
+  runuser -u atlas -- bash -lc 'curl -LsSf https://astral.sh/uv/install.sh | sh'
 fi
 
 UV="$ATLAS_HOME/.local/bin/uv"
 
 if [[ ! -d "$ENGINE_DIR/.git" ]]; then
-  sudo -u atlas -H git clone https://github.com/atlashub-digital/claude-code.git "$ENGINE_DIR"
+  runuser -u atlas -- git clone https://github.com/atlashub-digital/claude-code.git "$ENGINE_DIR"
 else
-  sudo -u atlas -H git -C "$ENGINE_DIR" fetch --all --prune
+  runuser -u atlas -- git -C "$ENGINE_DIR" fetch --all --prune
 fi
 
 echo "Installing pinned Python runtime and FCC dependencies from the fork lockfile..."
-sudo -u atlas -H "$UV" python install 3.14.7
-sudo -u atlas -H bash -lc "cd '$ENGINE_DIR' && '$UV' sync --frozen"
+runuser -u atlas -- "$UV" python install 3.14.7
+runuser -u atlas -- bash -lc "cd '$ENGINE_DIR' && '$UV' sync --frozen"
 
-# Claude Code is required by the V0 ECC profile. We intentionally keep the
-# remote installer behind an explicit flag so bootstrap cannot silently execute
-# external installer code.
-if ! sudo -u atlas -H bash -lc 'command -v claude >/dev/null 2>&1'; then
+# Claude Code is required by the V0 ECC profile. External installer execution
+# requires an explicit bootstrap flag so it cannot happen silently.
+if ! runuser -u atlas -- bash -lc 'command -v claude >/dev/null 2>&1'; then
   if [[ "${ATLAS_ALLOW_REMOTE_INSTALLERS:-0}" == "1" ]]; then
     echo "Installing Claude Code from Anthropic's official installer..."
-    sudo -u atlas -H bash -lc 'curl -fsSL https://claude.ai/install.sh | bash'
+    runuser -u atlas -- bash -lc 'curl -fsSL https://claude.ai/install.sh | bash'
   else
     echo
     echo "Claude Code is not installed."
@@ -95,7 +100,7 @@ if ! sudo -u atlas -H bash -lc 'command -v claude >/dev/null 2>&1'; then
 fi
 
 echo "Installing ECC 2.2.2 for the atlas user (Claude harness, core profile)..."
-sudo -u atlas -H bash -lc   'npx --yes ecc-universal@2.2.2 install --guided --harness claude --claude-scope user --claude-hooks standard --profile core --yes'
+runuser -u atlas -- bash -lc   'npx --yes ecc-universal@2.2.2 install --guided --harness claude --claude-scope user --claude-hooks standard --profile core --yes'
 
 echo "Installing systemd units and collector..."
 install -o root -g root -m 0755 "$ROOT_DIR/scripts/atlas-host-snapshot.sh" /usr/local/sbin/atlas-host-snapshot
@@ -115,7 +120,7 @@ echo "Bootstrap files installed."
 echo "NEXT:"
 echo "1) Edit /etc/atlas/atlas-agent-engine.env"
 echo "2) Run: systemctl start atlas-host-snapshot.service"
-echo "3) Run: sudo -u atlas -H npx --yes ecc-agentshield scan --format json"
+echo "3) Run: runuser -u atlas -- npx --yes ecc-agentshield scan --format json"
 echo "4) Run: systemctl enable --now atlas-agent-engine.service"
 echo "5) Verify: curl -fsS http://127.0.0.1:8082/admin >/dev/null"
 echo "6) Run: systemctl start atlas-dev-first-mission.service"

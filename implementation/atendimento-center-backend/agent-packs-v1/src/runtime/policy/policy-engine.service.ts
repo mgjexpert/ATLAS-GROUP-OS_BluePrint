@@ -58,7 +58,7 @@ export class PolicyEngineService {
         result: 'approval_required',
         policyIds: ['tool.side_effect.approval'],
         reason:
-          'Slice 2 executes read-only tools only; side effects require ApprovalEngine.',
+          'Side-effect tools require durable approval before execution.',
       };
     }
 

@@ -294,7 +294,7 @@ export class RuntimeActionService {
     await this.event(
       run.id,
       run.traceId,
-      'run.resumed',
+      'action.resumed',
       initiatedBy,
       {
         approvalRequestId,
@@ -379,6 +379,7 @@ export class RuntimeActionService {
           kind: 'approval',
           status: 'suspended',
           toolCode: envelope.tool,
+          approvalRequestId: approval.id,
           inputSummary: {
             actionId,
             risk: envelope.risk,

@@ -9,6 +9,7 @@ RUNTIME_TOOLS="$ROOT/runtime-v2-slice2-tools-policy"
 RUNTIME_APPROVAL="$ROOT/runtime-v2-slice3-approval-engine"
 RUNTIME_MODEL_TOOLS="$ROOT/runtime-v2-slice4-model-tools"
 RUNTIME_EXECUTION="$ROOT/runtime-v2-slice5-execution-layer"
+RUNTIME_KNOWLEDGE="$ROOT/runtime-v2-slice6-knowledge-memory"
 GROUP_OS="$ROOT/group-os-foundation"
 GROUP_OS_API="$ROOT/group-os-control-plane"
 
@@ -63,6 +64,11 @@ REQUIRED_FILES=(
   "$RUNTIME_EXECUTION/patches/deploy.sh.patch"
   "$RUNTIME_EXECUTION/patches/env.example.patch"
   "$RUNTIME_EXECUTION/patches/production-env.example.patch"
+  "$RUNTIME_KNOWLEDGE/database/migrations/20261001_atlas_runtime_v2_slice6_knowledge.sql"
+  "$RUNTIME_KNOWLEDGE/prisma/runtime-v2-slice6-models.prisma"
+  "$RUNTIME_KNOWLEDGE/patches/prisma-datasource.patch"
+  "$RUNTIME_KNOWLEDGE/patches/runtime.module.patch"
+  "$RUNTIME_KNOWLEDGE/patches/app.module.patch"
   "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"
   "$GROUP_OS/database/seeds/20261001_atlas_internal_org_v1.sql"
   "$GROUP_OS/prisma/group-os-models.prisma"
@@ -189,8 +195,37 @@ mkdir -p "$TARGET/src/group-os"
 cp -a "$GROUP_OS_API/src/group-os/." "$TARGET/src/group-os/"
 
 if ! grep -q "GroupOsModule" "$TARGET/src/app.module.ts"; then
-  git -C "$TARGET" apply --check     "$GROUP_OS_API/patches/app.module-after-runtime.patch"
-  git -C "$TARGET" apply     "$GROUP_OS_API/patches/app.module-after-runtime.patch"
+  git -C "$TARGET" apply --check "$GROUP_OS_API/patches/app.module-after-runtime.patch"
+  git -C "$TARGET" apply "$GROUP_OS_API/patches/app.module-after-runtime.patch"
+fi
+
+echo "Applying Runtime V2 Slice 6 knowledge/memory..."
+mkdir -p "$TARGET/src/knowledge"
+cp -a "$RUNTIME_KNOWLEDGE/src/knowledge/." "$TARGET/src/knowledge/"
+cp -a "$RUNTIME_KNOWLEDGE/src/runtime/." "$TARGET/src/runtime/"
+cp   "$RUNTIME_KNOWLEDGE/database/migrations/20261001_atlas_runtime_v2_slice6_knowledge.sql"   "$TARGET/database/migrations/20261001_atlas_runtime_v2_slice6_knowledge.sql"
+
+if ! grep -q '"knowledge"' "$TARGET/prisma/schema.prisma"; then
+  git -C "$TARGET" apply --check "$RUNTIME_KNOWLEDGE/patches/prisma-datasource.patch"
+  git -C "$TARGET" apply "$RUNTIME_KNOWLEDGE/patches/prisma-datasource.patch"
+fi
+
+if ! grep -q '^model KnowledgeSource {' "$TARGET/prisma/schema.prisma"; then
+  {
+    printf '\n// BEGIN ATLAS RUNTIME V2 SLICE 6\n'
+    cat "$RUNTIME_KNOWLEDGE/prisma/runtime-v2-slice6-models.prisma"
+    printf '// END ATLAS RUNTIME V2 SLICE 6\n'
+  } >> "$TARGET/prisma/schema.prisma"
+fi
+
+if ! grep -q "KnowledgeSearchTool" "$TARGET/src/runtime/runtime.module.ts"; then
+  git -C "$TARGET" apply --check "$RUNTIME_KNOWLEDGE/patches/runtime.module.patch"
+  git -C "$TARGET" apply "$RUNTIME_KNOWLEDGE/patches/runtime.module.patch"
+fi
+
+if ! grep -q "KnowledgeModule" "$TARGET/src/app.module.ts"; then
+  git -C "$TARGET" apply --check "$RUNTIME_KNOWLEDGE/patches/app.module.patch"
+  git -C "$TARGET" apply "$RUNTIME_KNOWLEDGE/patches/app.module.patch"
 fi
 
 echo

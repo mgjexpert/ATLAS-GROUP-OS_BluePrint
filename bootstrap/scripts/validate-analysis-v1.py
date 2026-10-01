@@ -9,7 +9,7 @@ PHASES = [
     "CONSOLIDATE", "REDUCE COST", "BUILD CORE", "REACTIVATE BY PRIORITY",
 ]
 CONFIDENCE = {"confirmed", "inferred", "unknown"}
-SEVERITY = {"critical", "high", "medium", "low", "info"}
+SEVERITY = {"critical", "high", "medium", "low", "info"}\nCATEGORIES = {"cost", "complexity", "security", "reliability", "governance"}\nREVERSIBILITY = {"reversible", "requires_backup", "unknown"}\nBLAST_RADIUS = {"low", "medium", "high", "unknown"}\nAPPROVAL = {"human", "required_after_backup", "none"}
 
 def validate(data, evidence):
     errors = []
@@ -82,6 +82,14 @@ def validate(data, evidence):
             invalid = [ref for ref in evidence_refs if ref not in sources]
             if invalid:
                 errors.append(f"{action_id}: invalid evidence refs {invalid}")
+            if not action.get("action") or not action.get("basis"):
+                errors.append(f"{action_id}: incomplete action")
+            if action.get("reversibility") not in REVERSIBILITY:
+                errors.append(f"{action_id}: invalid reversibility")
+            if action.get("blast_radius") not in BLAST_RADIUS:
+                errors.append(f"{action_id}: invalid blast_radius")
+            if action.get("approval") not in APPROVAL:
+                errors.append(f"{action_id}: invalid approval")
             if action.get("blast_radius") in {"medium", "high"} and action.get("approval") == "none":
                 errors.append(f"{action_id}: approval required for medium/high blast radius")
             if action.get("reversibility") == "requires_backup" and action.get("approval") == "none":
@@ -90,6 +98,9 @@ def validate(data, evidence):
         errors.append("duplicate action id")
 
     summary = data.get("executive_summary", {})
+    if not isinstance(summary, dict) or not summary.get("assessment"):
+        errors.append("executive_summary missing assessment")
+        summary = summary if isinstance(summary, dict) else {}
     risk_ids = {x.get("id") for x in data.get("risks", []) if isinstance(x, dict)}
     if any(x not in risk_ids for x in summary.get("top_risks", [])):
         errors.append("executive_summary references unknown risk")

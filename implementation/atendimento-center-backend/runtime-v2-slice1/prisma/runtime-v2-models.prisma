@@ -1,0 +1,80 @@
+// Append these models to prisma/schema.prisma.
+// Existing datasource schemas already include "ai" and "audit".
+
+model RuntimeRun {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String?   @map("organization_id") @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  agentId        String    @map("agent_id") @db.Uuid
+  agentVersionId String?   @map("agent_version_id") @db.Uuid
+  actorType      String    @default("user") @map("actor_type")
+  actorId        String?   @map("actor_id")
+  triggerType    String    @default("api") @map("trigger_type")
+  triggerRef     String?   @map("trigger_ref")
+  status         String    @default("running")
+  provider       String?
+  model          String?
+  input          Json      @default("{}")
+  output         Json?
+  inputTokens    Int?      @map("input_tokens")
+  outputTokens   Int?      @map("output_tokens")
+  costUsd        Decimal?  @map("cost_usd") @db.Decimal(18, 8)
+  latencyMs      Int?      @map("latency_ms")
+  traceId        String    @default(uuid()) @map("trace_id") @db.Uuid
+  errorMessage   String?   @map("error_message") @db.Text
+  metadata       Json      @default("{}")
+  startedAt      DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime? @map("finished_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([agentId, createdAt(sort: Desc)])
+  @@index([status, startedAt])
+  @@index([traceId])
+  @@map("runtime_runs")
+  @@schema("ai")
+}
+
+model RuntimeStep {
+  id                String    @id @default(uuid()) @db.Uuid
+  runId             String    @map("run_id") @db.Uuid
+  ordinal           Int
+  kind              String
+  status            String    @default("running")
+  provider          String?
+  model             String?
+  toolCode          String?   @map("tool_code")
+  inputSummary      Json      @default("{}") @map("input_summary")
+  outputSummary     Json?     @map("output_summary")
+  inputTokens       Int?      @map("input_tokens")
+  outputTokens      Int?      @map("output_tokens")
+  costUsd           Decimal?  @map("cost_usd") @db.Decimal(18, 8)
+  latencyMs         Int?      @map("latency_ms")
+  approvalRequestId String?   @map("approval_request_id") @db.Uuid
+  errorMessage      String?   @map("error_message") @db.Text
+  startedAt         DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedAt       DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([runId, ordinal])
+  @@index([runId, ordinal])
+  @@map("runtime_steps")
+  @@schema("ai")
+}
+
+model RuntimeEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  runId     String   @map("run_id") @db.Uuid
+  traceId   String   @map("trace_id") @db.Uuid
+  eventType String   @map("event_type")
+  actorType String?  @map("actor_type")
+  actorId   String?  @map("actor_id")
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([traceId, createdAt])
+  @@index([runId, createdAt])
+  @@map("runtime_events")
+  @@schema("audit")
+}

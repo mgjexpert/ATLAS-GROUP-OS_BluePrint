@@ -48,12 +48,12 @@ The bootstrap script installs normal OS utilities but intentionally refuses to i
 - `install-atlas-dev.sh` — installs the V0 runtime and service user
 - `atlas-dev.env.example` — non-secret environment template
 - `scripts/atlas-host-snapshot.sh` — sanitized evidence collector
-- `scripts/run-first-mission.sh` — launches the first non-interactive mission
+- `scripts/run-first-mission.sh` — historical V0 first mission runner\n- `scripts/run-evaluation-v1.sh` — preferred validated Level 0 evaluation runner\n- `scripts/build-compact-evidence.py` — normalizes the sanitized snapshot\n- `scripts/atlas-dev-analysis-v1.py` — performs one no-tools FCC analysis call\n- `scripts/validate-analysis-v1.py` — validates structure/evidence/governance metadata\n- `scripts/materialize-reports-v1.py` — writes deterministic and validated reports
 - `prompts/atlas-dev-first-mission.md` — first mission
 - `systemd/atlas-agent-engine.service` — local-only FCC service
 - `systemd/atlas-host-snapshot.service` — collector unit
 - `systemd/atlas-host-snapshot.timer` — hourly evidence refresh
-- `systemd/atlas-dev-first-mission.service` — one-shot first mission
+- `systemd/atlas-dev-first-mission.service` — historical one-shot V0 mission\n- `systemd/atlas-dev-evaluation-v1.service` — isolated validated V1 evaluation
 
 ## Installation sequence
 
@@ -86,3 +86,10 @@ npx --yes ecc-universal@2.2.2 install --guided \
 ```
 
 Do not pass `--profile` unless Kimi is also selected.
+
+
+## V1 validated evaluation
+
+V1 keeps Atlas.Dev at Level 0 but removes model filesystem tools from infrastructure evaluation. Facts/topology are materialized deterministically from sanitized evidence; the model returns one structured judgment object; trusted code validates it before report generation.
+
+See `docs/15-ATLAS-DEV-V1-VALIDATED-PIPELINE.md`.

@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 RUNTIME="$ROOT/runtime-v2-slice1"
 RUNTIME_TOOLS="$ROOT/runtime-v2-slice2-tools-policy"
+RUNTIME_APPROVAL="$ROOT/runtime-v2-slice3-approval-engine"
 GROUP_OS="$ROOT/group-os-foundation"
 GROUP_OS_API="$ROOT/group-os-control-plane"
 
@@ -44,6 +45,8 @@ REQUIRED_FILES=(
   "$RUNTIME_TOOLS/database/migrations/20261001_atlas_runtime_v2_slice2_tools_policy.sql"
   "$RUNTIME_TOOLS/prisma/runtime-v2-slice2-models.prisma"
   "$RUNTIME_TOOLS/patches/runtime.module.patch"
+  "$RUNTIME_APPROVAL/src/runtime/approval/approval-engine.service.ts"
+  "$RUNTIME_APPROVAL/patches/runtime.module.patch"
   "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"
   "$GROUP_OS/database/seeds/20261001_atlas_internal_org_v1.sql"
   "$GROUP_OS/prisma/group-os-models.prisma"
@@ -90,6 +93,12 @@ fi
 
 git -C "$TARGET" apply --check   "$RUNTIME_TOOLS/patches/runtime.module.patch"
 git -C "$TARGET" apply   "$RUNTIME_TOOLS/patches/runtime.module.patch"
+
+echo "Applying Runtime V2 Slice 3 ApprovalEngine..."
+cp -a "$RUNTIME_APPROVAL/src/runtime/." "$TARGET/src/runtime/"
+
+git -C "$TARGET" apply --check   "$RUNTIME_APPROVAL/patches/runtime.module.patch"
+git -C "$TARGET" apply   "$RUNTIME_APPROVAL/patches/runtime.module.patch"
 
 echo "Applying Atlas Group OS foundation schema..."
 mkdir -p "$TARGET/database/seeds"

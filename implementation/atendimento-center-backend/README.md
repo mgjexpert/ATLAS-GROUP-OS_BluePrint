@@ -39,7 +39,22 @@ Provides:
 
 Side-effect tools are suspended as `approval_required` and are never executed in this slice.
 
-### 3. Group OS Foundation
+### 3. Runtime V2 Slice 3 — ApprovalEngine
+
+Path: `runtime-v2-slice3-approval-engine/`
+
+Provides:
+
+- durable approval requests and decisions;
+- owner/admin decision endpoint;
+- suspended RuntimeAction lifecycle;
+- policy re-check after approval;
+- approval-step completion and audit;
+- reversible proof tool `atlas.portfolio.update_task_status`.
+
+Human approval never bypasses ToolGrant or current policy.
+
+### 4. Group OS Foundation
 
 Path: `group-os-foundation/`
 
@@ -51,7 +66,7 @@ Provides:
 - CostCenter / Budget / UsageRecord;
 - initial Atlas internal organization bootstrap.
 
-### 4. Group OS Control Plane API
+### 5. Group OS Control Plane API
 
 Path: `group-os-control-plane/`
 
@@ -91,15 +106,13 @@ It does **not**:
 ## Next implementation block
 
 ```text
-ApprovalEngine
-  -> durable ApprovalRequest
-  -> suspend Run/Action
-  -> human decision
-  -> policy re-check
-  -> resume Action
-  -> audit
+Model tool-calling
+  -> model proposes tool
+  -> trusted parser
+  -> same ActionEnvelope corridor
+  -> PolicyEngine
+  -> allow / approval / deny
 
 Then:
-Model tool-calling
-  -> same ActionEnvelope corridor
+Execution queues + resumable agent runs
 ```

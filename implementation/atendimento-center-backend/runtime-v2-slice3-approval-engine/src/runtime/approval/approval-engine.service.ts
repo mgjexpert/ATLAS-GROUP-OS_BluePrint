@@ -67,6 +67,21 @@ export class ApprovalEngineService {
             },
           });
 
+          if (request.actionId) {
+            await tx.runtimeAction.updateMany({
+              where: {
+                id: request.actionId,
+                status: 'suspended',
+              },
+              data: {
+                status: 'denied',
+                policyResult: 'deny',
+                policyReason: 'Approval expired.',
+                finishedAt: decidedAt,
+              },
+            });
+          }
+
           await tx.runtimeStep.updateMany({
             where: {
               runId: request.runId ?? undefined,
@@ -163,6 +178,7 @@ export class ApprovalEngineService {
             where: { id: action.id },
             data: {
               status: 'denied',
+              policyResult: 'deny',
               policyReason:
                 body.reason?.trim() ??
                 'Approval denied by authorized human.',

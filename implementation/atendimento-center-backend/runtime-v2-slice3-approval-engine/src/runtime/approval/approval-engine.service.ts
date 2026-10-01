@@ -67,9 +67,27 @@ export class ApprovalEngineService {
             },
           });
 
-          throw new BadRequestException(
-            'ApprovalRequest expirado.',
-          );
+          await tx.runtimeStep.updateMany({
+            where: {
+              runId: request.runId ?? undefined,
+              approvalRequestId: request.id,
+              kind: 'approval',
+              status: 'suspended',
+            },
+            data: {
+              status: 'completed',
+              outputSummary: {
+                approvalRequestId: request.id,
+                decision: 'expired',
+              } as Prisma.InputJsonValue,
+              completedAt: decidedAt,
+            },
+          });
+
+          return {
+            expired: true as const,
+            request,
+          };
         }
 
         if (!request.actionId) {
@@ -122,6 +140,24 @@ export class ApprovalEngineService {
           },
         });
 
+        await tx.runtimeStep.updateMany({
+          where: {
+            runId: run.id,
+            approvalRequestId: request.id,
+            kind: 'approval',
+            status: 'suspended',
+          },
+          data: {
+            status: 'completed',
+            outputSummary: {
+              approvalRequestId: request.id,
+              decision: body.decision,
+              reason: body.reason?.trim() ?? null,
+            } as Prisma.InputJsonValue,
+            completedAt: decidedAt,
+          },
+        });
+
         if (body.decision === 'denied') {
           await tx.runtimeAction.update({
             where: { id: action.id },
@@ -136,6 +172,7 @@ export class ApprovalEngineService {
         }
 
         return {
+          expired: false as const,
           request,
           action,
           run,
@@ -146,6 +183,12 @@ export class ApprovalEngineService {
           Prisma.TransactionIsolationLevel.Serializable,
       },
     );
+
+    if (result.expired) {
+      throw new BadRequestException(
+        'ApprovalRequest expirado.',
+      );
+    }
 
     await this.prisma.auditLog.create({
       data: {

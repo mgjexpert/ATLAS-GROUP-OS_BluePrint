@@ -3,9 +3,11 @@ set -euo pipefail
 
 TARGET="${1:-}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 RUNTIME="$ROOT/runtime-v2-slice1"
 GROUP_OS="$ROOT/group-os-foundation"
 GROUP_OS_API="$ROOT/group-os-control-plane"
+
 PINNED_SHA="f47dc6a31db118e0047decd1ea50e6a97a30df48"
 
 if [[ -z "$TARGET" ]]; then
@@ -35,8 +37,17 @@ if [[ "$CURRENT_SHA" != "$PINNED_SHA" ]]; then
   exit 5
 fi
 
-for required in   "$RUNTIME/src/runtime/runtime.module.ts"   "$RUNTIME/database/migrations/20261001_atlas_runtime_v2_slice1.sql"   "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"   "$GROUP_OS/prisma/group-os-models.prisma"   "$GROUP_OS_API/src/group-os/group-os.module.ts"   "$GROUP_OS_API/patches/app.module-after-runtime.patch"
-do
+REQUIRED_FILES=(
+  "$RUNTIME/src/runtime/runtime.module.ts"
+  "$RUNTIME/database/migrations/20261001_atlas_runtime_v2_slice1.sql"
+  "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"
+  "$GROUP_OS/database/seeds/20261001_atlas_internal_org_v1.sql"
+  "$GROUP_OS/prisma/group-os-models.prisma"
+  "$GROUP_OS_API/src/group-os/group-os.module.ts"
+  "$GROUP_OS_API/patches/app.module-after-runtime.patch"
+)
+
+for required in "${REQUIRED_FILES[@]}"; do
   [[ -f "$required" ]] || {
     echo "Missing overlay source: $required" >&2
     exit 6
@@ -57,18 +68,20 @@ if ! grep -q '^model RuntimeRun {' "$TARGET/prisma/schema.prisma"; then
 fi
 
 if ! grep -q "RuntimeModule" "$TARGET/src/app.module.ts"; then
-  git -C "$TARGET" apply --check "$RUNTIME/patches/app.module.patch"
-  git -C "$TARGET" apply "$RUNTIME/patches/app.module.patch"
+  git -C "$TARGET" apply --check     "$RUNTIME/patches/app.module.patch"
+  git -C "$TARGET" apply     "$RUNTIME/patches/app.module.patch"
 fi
 
 echo "Applying Atlas Group OS foundation schema..."
 mkdir -p "$TARGET/database/seeds"
+
 cp   "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"   "$TARGET/database/migrations/20261001_atlas_group_os_foundation_v1.sql"
+
 cp   "$GROUP_OS/database/seeds/20261001_atlas_internal_org_v1.sql"   "$TARGET/database/seeds/20261001_atlas_internal_org_v1.sql"
 
 if ! grep -q '"portfolio"' "$TARGET/prisma/schema.prisma"; then
-  git -C "$TARGET" apply --check "$GROUP_OS/patches/prisma-datasource.patch"
-  git -C "$TARGET" apply "$GROUP_OS/patches/prisma-datasource.patch"
+  git -C "$TARGET" apply --check     "$GROUP_OS/patches/prisma-datasource.patch"
+  git -C "$TARGET" apply     "$GROUP_OS/patches/prisma-datasource.patch"
 fi
 
 if ! grep -q '^model BusinessUnit {' "$TARGET/prisma/schema.prisma"; then

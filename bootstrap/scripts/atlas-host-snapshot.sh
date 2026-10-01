@@ -42,6 +42,12 @@ if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
       image: .Config.Image,
       status: .State.Status,
       restart_policy: .HostConfig.RestartPolicy.Name,
+      configured_user: (.Config.User // ""),
+      privileged: (.HostConfig.Privileged // false),
+      cap_add: (.HostConfig.CapAdd // []),
+      cap_drop: (.HostConfig.CapDrop // []),
+      security_opt: (.HostConfig.SecurityOpt // []),
+      read_only_rootfs: (.HostConfig.ReadonlyRootfs // false),
       networks: (.NetworkSettings.Networks | keys),
       mounts: [.Mounts[]? | {
         type: .Type,
@@ -72,6 +78,14 @@ for dir in /srv /opt; do
     find "$dir" -maxdepth 2 -mindepth 1 -type d -printf '%p\n' 2>/dev/null       | sort > "$OUT/$(basename "$dir")-directories.txt"
   fi
 done
+
+# Sanitized Git deployment metadata. Never persist raw remote URLs.
+if [[ -x /usr/local/share/atlas/v1/collect-git-repositories.py ]]; then
+  /usr/bin/python3 /usr/local/share/atlas/v1/collect-git-repositories.py \
+    --output "$OUT/git-repositories.json" /srv /opt
+else
+  printf '[]\n' > "$OUT/git-repositories.json"
+fi
 
 # Defensive scan: quarantine if common secret signatures or credential-bearing URIs appear.
 if grep -RIEq   '(sk-(ant|proj)-[A-Za-z0-9_-]{12,}|github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{20,}|xox[baprs]-|postgres(ql)?://[^[:space:]]+:[^[:space:]]+@|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY)'   "$OUT"; then

@@ -193,7 +193,6 @@ export class RuntimeActionService {
       run.traceId,
       'tool.started',
       initiatedBy,
-      initiatedBy,
       {
         actionId: action.id,
         stepId: executionStep.id,
@@ -243,6 +242,7 @@ export class RuntimeActionService {
         run.id,
         run.traceId,
         'tool.completed',
+        initiatedBy,
         {
           actionId: action.id,
           stepId: executionStep.id,
@@ -285,6 +285,7 @@ export class RuntimeActionService {
         run.id,
         run.traceId,
         'tool.failed',
+        initiatedBy,
         {
           actionId: action.id,
           stepId: executionStep.id,

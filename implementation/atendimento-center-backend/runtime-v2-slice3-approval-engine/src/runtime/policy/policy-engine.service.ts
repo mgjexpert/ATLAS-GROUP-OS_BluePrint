@@ -54,6 +54,22 @@ export class PolicyEngineService {
       };
     }
 
+    if (
+      persistedDefinition.capability !==
+        tool.definition.capability ||
+      persistedDefinition.sideEffect !==
+        tool.definition.sideEffect ||
+      persistedDefinition.defaultRisk !==
+        tool.definition.defaultRisk
+    ) {
+      return {
+        result: 'deny',
+        policyIds: ['tool.definition.persisted_integrity'],
+        reason:
+          'Persisted tool definition does not match the registered runtime definition.',
+      };
+    }
+
     const grant = await this.prisma.toolGrant.findFirst({
       where: {
         tenantId: envelope.target.tenantId,

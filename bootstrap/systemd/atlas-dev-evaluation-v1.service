@@ -5,8 +5,8 @@ After=atlas-agent-engine.service atlas-host-snapshot.service
 
 [Service]
 Type=oneshot
-User=root
-Group=root
+User=atlas-agent
+Group=atlas-agent
 ExecStart=/usr/local/sbin/atlas-dev-evaluation-v1
 TimeoutStartSec=20min
 UMask=0027
@@ -19,7 +19,7 @@ ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
 LockPersonality=true
-CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_CHOWN CAP_DAC_OVERRIDE CAP_FOWNER
+CapabilityBoundingSet=
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 IPAddressDeny=any
 IPAddressAllow=127.0.0.1

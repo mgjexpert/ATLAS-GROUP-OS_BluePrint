@@ -10,6 +10,7 @@ RUNTIME_APPROVAL="$ROOT/runtime-v2-slice3-approval-engine"
 RUNTIME_MODEL_TOOLS="$ROOT/runtime-v2-slice4-model-tools"
 RUNTIME_EXECUTION="$ROOT/runtime-v2-slice5-execution-layer"
 RUNTIME_KNOWLEDGE="$ROOT/runtime-v2-slice6-knowledge-memory"
+AGENT_PACKS="$ROOT/agent-packs-v1"
 GROUP_OS="$ROOT/group-os-foundation"
 GROUP_OS_API="$ROOT/group-os-control-plane"
 
@@ -69,6 +70,10 @@ REQUIRED_FILES=(
   "$RUNTIME_KNOWLEDGE/patches/prisma-datasource.patch"
   "$RUNTIME_KNOWLEDGE/patches/runtime.module.patch"
   "$RUNTIME_KNOWLEDGE/patches/app.module.patch"
+  "$AGENT_PACKS/database/migrations/20261001_atlas_agent_packs_v1.sql"
+  "$AGENT_PACKS/prisma/agent-pack-models.prisma"
+  "$AGENT_PACKS/patches/runtime.module.patch"
+  "$AGENT_PACKS/patches/app.module.patch"
   "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"
   "$GROUP_OS/database/seeds/20261001_atlas_internal_org_v1.sql"
   "$GROUP_OS/prisma/group-os-models.prisma"
@@ -226,6 +231,30 @@ fi
 if ! grep -q "KnowledgeModule" "$TARGET/src/app.module.ts"; then
   git -C "$TARGET" apply --check "$RUNTIME_KNOWLEDGE/patches/app.module.patch"
   git -C "$TARGET" apply "$RUNTIME_KNOWLEDGE/patches/app.module.patch"
+fi
+
+echo "Applying Agent Packs V1..."
+mkdir -p "$TARGET/src/agent-packs"
+cp -a "$AGENT_PACKS/src/agent-packs/." "$TARGET/src/agent-packs/"
+cp -a "$AGENT_PACKS/src/runtime/." "$TARGET/src/runtime/"
+cp   "$AGENT_PACKS/database/migrations/20261001_atlas_agent_packs_v1.sql"   "$TARGET/database/migrations/20261001_atlas_agent_packs_v1.sql"
+
+if ! grep -q '^model AgentPack {' "$TARGET/prisma/schema.prisma"; then
+  {
+    printf '\n// BEGIN ATLAS AGENT PACKS V1\n'
+    cat "$AGENT_PACKS/prisma/agent-pack-models.prisma"
+    printf '// END ATLAS AGENT PACKS V1\n'
+  } >> "$TARGET/prisma/schema.prisma"
+fi
+
+if ! grep -q "ToolAuthorizationService" "$TARGET/src/runtime/runtime.module.ts"; then
+  git -C "$TARGET" apply --check "$AGENT_PACKS/patches/runtime.module.patch"
+  git -C "$TARGET" apply "$AGENT_PACKS/patches/runtime.module.patch"
+fi
+
+if ! grep -q "AgentPacksModule" "$TARGET/src/app.module.ts"; then
+  git -C "$TARGET" apply --check "$AGENT_PACKS/patches/app.module.patch"
+  git -C "$TARGET" apply "$AGENT_PACKS/patches/app.module.patch"
 fi
 
 echo

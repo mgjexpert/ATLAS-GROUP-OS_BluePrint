@@ -1,0 +1,197 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  Prisma,
+  type Tenant,
+} from '@prisma/client';
+import { PrismaService } from '../../database/prisma.service';
+import { RuntimeActionService } from '../actions/runtime-action.service';
+import type { RuntimeActor } from '../runtime.types';
+import type { DecideApprovalDto } from './approval.dto';
+
+@Injectable()
+export class ApprovalEngineService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly actions: RuntimeActionService,
+  ) {}
+
+  async decide(
+    tenant: Tenant,
+    approvalRequestId: string,
+    body: DecideApprovalDto,
+    actor: RuntimeActor,
+  ) {
+    if (!tenant.organizationId) {
+      throw new BadRequestException(
+        'Tenant sem Organization associada.',
+      );
+    }
+
+    const decidedAt = new Date();
+
+    const result = await this.prisma.$transaction(
+      async (tx) => {
+        const request = await tx.approvalRequest.findFirst({
+          where: {
+            id: approvalRequestId,
+            organizationId: tenant.organizationId!,
+            tenantId: tenant.id,
+          },
+        });
+
+        if (!request) {
+          throw new NotFoundException(
+            'ApprovalRequest não encontrado.',
+          );
+        }
+
+        if (request.status !== 'pending') {
+          throw new BadRequestException(
+            `ApprovalRequest já encerrado: ${request.status}`,
+          );
+        }
+
+        if (
+          request.expiresAt &&
+          request.expiresAt.getTime() <= decidedAt.getTime()
+        ) {
+          await tx.approvalRequest.update({
+            where: { id: request.id },
+            data: {
+              status: 'expired',
+              decidedAt,
+            },
+          });
+
+          throw new BadRequestException(
+            'ApprovalRequest expirado.',
+          );
+        }
+
+        if (!request.actionId) {
+          throw new BadRequestException(
+            'ApprovalRequest sem RuntimeAction associada.',
+          );
+        }
+
+        const action = await tx.runtimeAction.findFirst({
+          where: {
+            id: request.actionId,
+            status: 'suspended',
+          },
+        });
+
+        if (!action) {
+          throw new BadRequestException(
+            'RuntimeAction não está suspensa ou não existe.',
+          );
+        }
+
+        const run = await tx.runtimeRun.findFirst({
+          where: {
+            id: action.runId,
+            tenantId: tenant.id,
+          },
+        });
+
+        if (!run) {
+          throw new BadRequestException(
+            'RuntimeRun não pertence ao tenant atual.',
+          );
+        }
+
+        await tx.approvalRequest.update({
+          where: { id: request.id },
+          data: {
+            status: body.decision,
+            decidedAt,
+          },
+        });
+
+        await tx.approvalDecision.create({
+          data: {
+            approvalRequestId: request.id,
+            decision: body.decision,
+            actorType: actor.type,
+            actorId: actor.id,
+            reason: body.reason?.trim(),
+          },
+        });
+
+        if (body.decision === 'denied') {
+          await tx.runtimeAction.update({
+            where: { id: action.id },
+            data: {
+              status: 'denied',
+              policyReason:
+                body.reason?.trim() ??
+                'Approval denied by authorized human.',
+              finishedAt: decidedAt,
+            },
+          });
+        }
+
+        return {
+          request,
+          action,
+          run,
+        };
+      },
+      {
+        isolationLevel:
+          Prisma.TransactionIsolationLevel.Serializable,
+      },
+    );
+
+    await this.prisma.auditLog.create({
+      data: {
+        tenantId: tenant.id,
+        actorId: actor.id,
+        action: 'runtime.approval.decided',
+        entityType: 'approval_request',
+        entityId: result.request.id,
+        metadata: {
+          decision: body.decision,
+          actionId: result.action.id,
+          runId: result.run.id,
+          reason: body.reason?.trim() ?? null,
+        } as Prisma.InputJsonValue,
+      },
+    });
+
+    await this.prisma.runtimeEvent.create({
+      data: {
+        runId: result.run.id,
+        traceId: result.run.traceId,
+        eventType: 'approval.decided',
+        actorType: actor.type,
+        actorId: actor.id,
+        payload: {
+          approvalRequestId: result.request.id,
+          actionId: result.action.id,
+          decision: body.decision,
+          reason: body.reason?.trim() ?? null,
+        } as Prisma.InputJsonValue,
+      },
+    });
+
+    if (body.decision === 'denied') {
+      return {
+        approvalRequestId: result.request.id,
+        actionId: result.action.id,
+        status: 'denied',
+      };
+    }
+
+    return this.actions.resumeApprovedAction(
+      tenant,
+      result.action.id,
+      result.request.id,
+      actor,
+    );
+  }
+}

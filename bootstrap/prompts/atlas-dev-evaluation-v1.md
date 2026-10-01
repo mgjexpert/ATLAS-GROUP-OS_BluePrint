@@ -15,11 +15,12 @@ EVIDENCE DISCIPLINE
 - A Docker port token like `8080/tcp` is container exposure only. Only entries in `host_bindings` prove a Docker host binding.
 - Environment-variable names prove only that those names are declared/configured. They do not prove a value is present, non-empty, valid, live, or currently used.
 - Treat hardening flags per container. Do not generalize one container's read-only rootfs, security options, or capability drops to an entire project unless every project container matches.
-- Respect current container state. Do not recommend stopping a container that is already stopped/exited.
+- Respect current container state. Do not recommend stopping a container that is already stopped/exited. When making a state claim, use the exact container name rather than a shorthand label.
 - Network membership is not an application dependency graph and does not prove startup/restart order.
 - A public reverse proxy binding HTTP/HTTPS to all interfaces may be intentional. Do not recommend interface restriction unless routing/firewall intent evidence supports it.
 - Do not recommend right-sizing without per-service resource measurements.
 - Do not classify volumes as unused unless usage/classification evidence proves that status.
+- An empty Git HEAD is UNKNOWN. Do not attribute it to shallow clone, detached HEAD, tracking state, or another cause unless evidence proves the cause.
 - Never invent DNS mappings, repository mappings, database contents, credentials, effective container users, Internet reachability, backup state, or business dependencies.
 - "No evidence in the manifest" means UNKNOWN, not "safe", "absent", or "not compromised".
 - A socket binding to all interfaces does not by itself prove Internet reachability.

@@ -32,7 +32,7 @@ trap persist_diagnostics EXIT
 [[ -d "$EVIDENCE" ]] || { echo "Missing sanitized evidence snapshot." >&2; exit 2; }
 [[ -f "$ENV_FILE" ]] || { echo "Missing engine environment file." >&2; exit 3; }
 
-for f in build-compact-evidence.py atlas-dev-analysis-v1.py validate-analysis-v1.py materialize-reports-v1.py atlas-dev-evaluation-v1.md; do
+for f in build-compact-evidence.py atlas-dev-analysis-v1.py normalize-analysis-refs-v1.py validate-analysis-v1.py materialize-reports-v1.py atlas-dev-evaluation-v1.md; do
   [[ -f "$SHARE/$f" ]] || { echo "Missing $SHARE/$f" >&2; exit 4; }
 done
 
@@ -57,8 +57,10 @@ export PATH="$ATLAS_HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/us
 export PYTHONDONTWRITEBYTECODE=1
 
 cd "$RUN/model-work"
-"$PYTHON" "$SHARE/atlas-dev-analysis-v1.py"   --evidence "$RUN/work/compact-evidence.json"   --prompt "$SHARE/atlas-dev-evaluation-v1.md"   --output "$RUN/model-work/analysis.json"   --usage-output "$RUN/model-work/usage.json"
+"$PYTHON" "$SHARE/atlas-dev-analysis-v1.py"   --evidence "$RUN/work/compact-evidence.json"   --prompt "$SHARE/atlas-dev-evaluation-v1.md"   --output "$RUN/model-work/raw-analysis.json"   --usage-output "$RUN/model-work/usage.json"
 cd /
+
+/usr/bin/python3 "$SHARE/normalize-analysis-refs-v1.py"   --evidence "$RUN/work/compact-evidence.json"   --analysis "$RUN/model-work/raw-analysis.json"   --output "$RUN/model-work/analysis.json"
 
 /usr/bin/python3 "$SHARE/validate-analysis-v1.py"   --evidence "$RUN/work/compact-evidence.json"   --analysis "$RUN/model-work/analysis.json"   --report "$RUN/work/validation-report.json"
 

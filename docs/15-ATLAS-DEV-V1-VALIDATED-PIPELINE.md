@@ -48,6 +48,8 @@ The model contributes judgment to:
 
 ## V1 validation gates
 
+Before structural validation, a deterministic evidence-reference normalizer may expand only aliases declared by the evidence manifest itself. For example, a logical combined directory reference can map to the exact source files used to construct that field. Undeclared references still fail closed.
+
 The structural validator fails closed when it detects:
 
 - an unexpected analysis schema;

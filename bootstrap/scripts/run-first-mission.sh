@@ -14,7 +14,7 @@ UV="$ATLAS_HOME/.local/bin/uv"
 LOG_DIR="/var/log/atlas"
 
 if [[ "${EUID}" -ne 0 ]]; then
-  echo "Run through systemd/root; the model process itself executes as user atlas." >&2
+  echo "Run through systemd/root; the model process itself executes as user atlas-agent." >&2
   exit 1
 fi
 
@@ -41,8 +41,26 @@ chown -R root:atlas-agent "$MISSION/blueprint" "$MISSION/evidence"
 find "$MISSION/blueprint" "$MISSION/evidence" -type d -exec chmod 0750 {} +
 find "$MISSION/blueprint" "$MISSION/evidence" -type f -exec chmod 0640 {} +
 
-# The only writable mission path for the agent.
+# The only intended writable mission path for the agent.
 install -d -o "$ATLAS_USER" -g "$ATLAS_USER" -m 0750 "$MISSION/output"
+
+# V0 fail-closed MCP policy: no MCP servers are allowed in the first mission.
+# Claude Code must support strict MCP configuration before we proceed.
+CLAUDE_BIN="$ATLAS_HOME/.local/bin/claude"
+if ! "$CLAUDE_BIN" --help 2>&1 | grep -q -- '--strict-mcp-config'; then
+  echo "Claude Code does not expose --strict-mcp-config; refusing V0 mission." >&2
+  exit 6
+fi
+if ! "$CLAUDE_BIN" --help 2>&1 | grep -q -- '--mcp-config'; then
+  echo "Claude Code does not expose --mcp-config; refusing V0 mission." >&2
+  exit 7
+fi
+
+cat > "$MISSION/mcp-empty.json" <<'JSON'
+{"mcpServers":{}}
+JSON
+chown root:atlas-agent "$MISSION/mcp-empty.json"
+chmod 0640 "$MISSION/mcp-empty.json"
 
 # Execute the harness as the non-root atlas user.
 # The V0 agent gets no Bash, web or Edit tools, and the service user has no sudo/docker membership.
@@ -63,7 +81,13 @@ runuser -u "$ATLAS_USER" -- bash -c '
   export PATH="$ATLAS_HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   cd "$MISSION"
 
-  exec "$UV" run --project "$ENGINE" fcc-claude -p "$(cat "$PROMPT")"     --output-format json     --max-turns 30     --allowedTools "Read,Glob,Grep,Write"     --disallowedTools "Bash,Edit,WebFetch,WebSearch"
+  exec "$UV" run --project "$ENGINE" fcc-claude -p "$(cat "$PROMPT")" \
+    --output-format json \
+    --max-turns 30 \
+    --mcp-config "$MISSION/mcp-empty.json" \
+    --strict-mcp-config \
+    --allowedTools "Read,Glob,Grep,Write" \
+    --disallowedTools "Bash,Edit,WebFetch,WebSearch"
 ' _ "$ENV_FILE" "$ATLAS_HOME" "$MISSION" "$UV" "$ENGINE" "$PROMPT"   > "$LOG_DIR/atlas-dev-first-mission.json"
 
 chown "$ATLAS_USER:$ATLAS_USER" "$LOG_DIR/atlas-dev-first-mission.json"

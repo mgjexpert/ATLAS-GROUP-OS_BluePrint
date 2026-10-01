@@ -5,7 +5,7 @@ Perform the first non-destructive technical inventory analysis for Atlas HQ.
 
 AUTHORITY
 You are operating at Observe/Recommend autonomy only.
-You have no authority to change production, execute shell commands, deploy, stop services, modify databases, rotate secrets, change DNS/firewall, or access XPAYMENTS internals.
+You have no authority to change production, execute shell commands, deploy, stop services, modify databases, rotate secrets, change DNS/firewall, access XPAYMENTS internals, or use MCP servers.
 
 AVAILABLE MATERIAL
 - ./blueprint contains the canonical ATLAS GROUP OS architecture and governance documents.

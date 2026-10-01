@@ -1,4 +1,5 @@
 import {
+  IsIn,
   IsObject,
   IsString,
   MaxLength,
@@ -21,4 +22,10 @@ export class ExecuteRuntimeToolDto {
 
   @IsObject()
   input!: Record<string, unknown>;
+}
+
+
+export class UpdateRuntimeToolGrantDto {
+  @IsIn(['active', 'disabled', 'revoked'])
+  status!: 'active' | 'disabled' | 'revoked';
 }

@@ -42,6 +42,7 @@ REQUIRED_FILES=(
   "$RUNTIME/src/runtime/runtime.module.ts"
   "$RUNTIME/database/migrations/20261001_atlas_runtime_v2_slice1.sql"
   "$RUNTIME_TOOLS/database/migrations/20261001_atlas_runtime_v2_slice2_tools_policy.sql"
+  "$RUNTIME_TOOLS/prisma/runtime-v2-slice2-models.prisma"
   "$RUNTIME_TOOLS/patches/runtime.module.patch"
   "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"
   "$GROUP_OS/database/seeds/20261001_atlas_internal_org_v1.sql"

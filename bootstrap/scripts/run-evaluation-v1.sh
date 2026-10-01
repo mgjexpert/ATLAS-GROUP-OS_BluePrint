@@ -28,7 +28,6 @@ find "$RUN/evidence" -type d -exec chmod 0750 {} +
 find "$RUN/evidence" -type f -exec chmod 0640 {} +
 
 /usr/bin/python3 "$SHARE/build-compact-evidence.py"   --evidence "$RUN/evidence"   --output "$RUN/work/compact-evidence.json"
-chown root:atlas-agent "$RUN/work/compact-evidence.json"
 chmod 0640 "$RUN/work/compact-evidence.json"
 
 install -d -m 0750 "$RUN/model-work"

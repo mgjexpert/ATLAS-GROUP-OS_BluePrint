@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Get,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -27,6 +29,14 @@ import { RuntimeRunService } from './runtime-run.service';
 )
 export class RuntimeController {
   constructor(private readonly runtime: RuntimeRunService) {}
+
+  @Get('runs/:id')
+  get(
+    @CurrentTenant() tenant: Tenant,
+    @Param('id') id: string,
+  ) {
+    return this.runtime.get(tenant, id);
+  }
 
   @Post('runs')
   @TenantRoles('owner', 'admin', 'supervisor', 'agent')

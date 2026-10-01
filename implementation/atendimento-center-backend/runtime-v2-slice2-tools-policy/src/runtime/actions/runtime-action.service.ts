@@ -206,6 +206,7 @@ export class RuntimeActionService {
           runId: run.id,
           traceId: run.traceId,
         },
+        policyDecision,
       );
 
       const output = this.toJson(result);

@@ -1,0 +1,9 @@
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -5,7 +5,7 @@
+ datasource db {
+   provider = "postgresql"
+   url      = env("DATABASE_URL")
+-  schemas  = ["core", "crm", "channels", "ai", "flows", "automation", "smm", "signals", "integrations", "audit", "portfolio", "governance", "finops"]
++  schemas  = ["core", "crm", "channels", "ai", "flows", "automation", "smm", "signals", "integrations", "audit", "portfolio", "governance", "finops", "knowledge"]
+ }

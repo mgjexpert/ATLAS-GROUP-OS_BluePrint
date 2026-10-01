@@ -117,31 +117,52 @@ if [[ "${ATLAS_SKIP_BUILD:-0}" == "1" ]]; then
   exit 0
 fi
 
-echo "=== DEPENDENCIES ==="
-(
-  cd "$TARGET"
-  npm install
-)
+LOG_DIR="/tmp/atlas-v2-build-${STAMP}"
+mkdir -p "$LOG_DIR"
 
-echo "=== PRISMA VALIDATE ==="
-(
-  cd "$TARGET"
-  npx prisma validate
-)
+BUILD_DATABASE_URL="${DATABASE_URL:-postgresql://atlas_build:atlas_build@127.0.0.1:5432/atlas_build}"
 
-echo "=== PRISMA GENERATE ==="
-(
-  cd "$TARGET"
-  npm run prisma:generate
-)
+run_stage() {
+  local stage="$1"
+  shift
 
-echo "=== TYPESCRIPT BUILD ==="
-(
-  cd "$TARGET"
-  npm run build
-)
+  local log="$LOG_DIR/${stage}.log"
+
+  echo "=== ${stage^^} ==="
+
+  set +e
+  (
+    cd "$TARGET"
+    "$@"
+  ) 2>&1 | tee "$log"
+
+  local rc=${PIPESTATUS[0]}
+  set -e
+
+  if [[ "$rc" -ne 0 ]]; then
+    echo
+    echo "ATLAS V2 BUILD STAGE FAILED: $stage"
+    echo "Exit code: $rc"
+    echo "Log: $log"
+    echo
+    echo "=== LAST 160 LOG LINES ==="
+    tail -n 160 "$log" || true
+    echo
+    echo "All build logs: $LOG_DIR"
+    exit "$rc"
+  fi
+}
+
+run_stage   dependencies   env     PRISMA_SKIP_POSTINSTALL_GENERATE=1     DATABASE_URL="$BUILD_DATABASE_URL"     npm install
+
+run_stage   prisma_validate   env     DATABASE_URL="$BUILD_DATABASE_URL"     ./node_modules/.bin/prisma validate
+
+run_stage   prisma_generate   env     DATABASE_URL="$BUILD_DATABASE_URL"     npm run prisma:generate
+
+run_stage   typescript_build   npm run build
 
 echo
 echo "ATLAS V2 INTEGRATION BUILD: SUCCESS"
 echo "Target: $TARGET"
 echo "Safety patch: $SAFETY_PATCH"
+echo "Build logs: $LOG_DIR"

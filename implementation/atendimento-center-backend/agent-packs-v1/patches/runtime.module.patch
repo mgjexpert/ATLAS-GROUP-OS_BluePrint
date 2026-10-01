@@ -1,0 +1,18 @@
+--- a/src/runtime/runtime.module.ts
++++ b/src/runtime/runtime.module.ts
+@@ -10,6 +10,7 @@
+ import { KnowledgeSearchTool } from './tools/builtin/knowledge-search.tool';
+ import { PortfolioUpdateTaskStatusTool } from './tools/builtin/portfolio-update-task-status.tool';
+ import { RuntimeInspectRunTool } from './tools/builtin/runtime-inspect-run.tool';
++import { ToolAuthorizationService } from './tools/tool-authorization.service';
+ import { RuntimeToolsController } from './tools/runtime-tools.controller';
+ import { ToolRegistryService } from './tools/tool-registry.service';
+ import { ToolRunnerService } from './tools/tool-runner.service';
+@@ -34,6 +35,7 @@
+     RuntimeInspectRunTool,
+     KnowledgeSearchTool,
+     PortfolioUpdateTaskStatusTool,
++    ToolAuthorizationService,
+     ToolRegistryService,
+     PolicyEngineService,
+     ToolRunnerService,

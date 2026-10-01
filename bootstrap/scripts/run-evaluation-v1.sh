@@ -11,7 +11,7 @@ EVIDENCE="/var/lib/atlas/inventory/current"
 ENV_FILE="/etc/atlas/atlas-agent-engine.env"
 SHARE="/usr/local/share/atlas/v1"
 LOG_DIR="/var/log/atlas"
-UV="$ATLAS_HOME/.local/bin/uv"
+PYTHON="$ENGINE/.venv/bin/python"
 
 [[ "${EUID}" -eq 0 ]] || { echo "Run through systemd/root." >&2; exit 1; }
 [[ -d "$EVIDENCE" ]] || { echo "Missing sanitized evidence snapshot." >&2; exit 2; }
@@ -33,15 +33,17 @@ chown root:atlas-agent "$RUN/work/compact-evidence.json"
 chmod 0640 "$RUN/work/compact-evidence.json"
 
 install -d -o "$ATLAS_USER" -g "$ATLAS_USER" -m 0750 "$RUN/model-work"
+[[ -x "$PYTHON" ]] || { echo "Missing FCC Python runtime at $PYTHON" >&2; exit 5; }
+
 runuser -u "$ATLAS_USER" -- bash -c '
   set -euo pipefail
-  ENV_FILE="$1"; ATLAS_HOME="$2"; ENGINE="$3"; UV="$4"; SHARE="$5"; RUN="$6"
+  ENV_FILE="$1"; ATLAS_HOME="$2"; PYTHON="$3"; SHARE="$4"; RUN="$5"
   set -a; source "$ENV_FILE"; set +a
   export HOME="$ATLAS_HOME"
   export PATH="$ATLAS_HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   cd "$RUN/model-work"
-  exec "$UV" run --project "$ENGINE" python "$SHARE/atlas-dev-analysis-v1.py"     --evidence "$RUN/work/compact-evidence.json"     --prompt "$SHARE/atlas-dev-evaluation-v1.md"     --output "$RUN/model-work/analysis.json"     --usage-output "$RUN/model-work/usage.json"
-' _ "$ENV_FILE" "$ATLAS_HOME" "$ENGINE" "$UV" "$SHARE" "$RUN"
+  exec "$PYTHON" "$SHARE/atlas-dev-analysis-v1.py"     --evidence "$RUN/work/compact-evidence.json"     --prompt "$SHARE/atlas-dev-evaluation-v1.md"     --output "$RUN/model-work/analysis.json"     --usage-output "$RUN/model-work/usage.json"
+' _ "$ENV_FILE" "$ATLAS_HOME" "$PYTHON" "$SHARE" "$RUN"
 
 /usr/bin/python3 "$SHARE/validate-analysis-v1.py"   --evidence "$RUN/work/compact-evidence.json"   --analysis "$RUN/model-work/analysis.json"   --report "$RUN/work/validation-report.json"
 

@@ -23,7 +23,7 @@ Flow:
 
 The evaluation model no longer receives Claude Code filesystem tools. It has no Bash, Read/Glob/Grep, Write/Edit, MCP, web tools or Docker socket access.
 
-The evaluation systemd unit is restricted to loopback networking. The model-side process talks to the existing local FCC service, while FCC remains the external provider gateway and retains the configured routing policy.
+The evaluation systemd unit is restricted to loopback networking. The Atlas filesystem tree is read-only by default, with write exceptions only for the V1 workspace and FCC managed state. Docker sockets are inaccessible. The model-side process talks to the existing local FCC service, while FCC remains the external provider gateway and retains the configured routing policy.
 
 The model returns one JSON analysis. Trusted code owns filesystem writes.
 

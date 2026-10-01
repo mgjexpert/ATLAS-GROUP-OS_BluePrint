@@ -35,6 +35,15 @@ export class ToolAuthorizationService {
       return Array.from(codes).sort();
     }
 
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { organizationId: true },
+    });
+
+    if (!tenant?.organizationId) {
+      return Array.from(codes).sort();
+    }
+
     const version =
       await this.prisma.agentPackVersion.findFirst({
         where: {
@@ -44,6 +53,19 @@ export class ToolAuthorizationService {
       });
 
     if (!version) {
+      return Array.from(codes).sort();
+    }
+
+    const pack = await this.prisma.agentPack.findFirst({
+      where: {
+        id: version.packId,
+        organizationId: tenant.organizationId,
+        status: 'active',
+      },
+      select: { id: true },
+    });
+
+    if (!pack) {
       return Array.from(codes).sort();
     }
 

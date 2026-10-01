@@ -53,7 +53,7 @@ export class RuntimeRunService {
         provider: agent.provider,
         model: body.model ?? agent.model,
         input: {
-          inputChars: body.input.length,
+          content: body.input,
         } as Prisma.InputJsonValue,
         metadata: (body.metadata ?? {}) as Prisma.InputJsonValue,
       },
@@ -237,6 +237,36 @@ export class RuntimeRunService {
 
       throw error;
     }
+  }
+
+  async get(tenant: Tenant, runId: string) {
+    const run = await this.prisma.runtimeRun.findFirst({
+      where: {
+        id: runId,
+        tenantId: tenant.id,
+      },
+    });
+
+    if (!run) {
+      throw new NotFoundException('Run não encontrado.');
+    }
+
+    const [steps, events] = await Promise.all([
+      this.prisma.runtimeStep.findMany({
+        where: { runId: run.id },
+        orderBy: { ordinal: 'asc' },
+      }),
+      this.prisma.runtimeEvent.findMany({
+        where: { runId: run.id },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+
+    return {
+      run,
+      steps,
+      events,
+    };
   }
 
   private event(

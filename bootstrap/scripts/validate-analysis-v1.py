@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import re
 from pathlib import Path
 
 SCHEMA = "atlas.dev.analysis.v1"
@@ -14,6 +15,111 @@ CATEGORIES = {"cost", "complexity", "security", "reliability", "governance"}
 REVERSIBILITY = {"reversible", "requires_backup", "unknown"}
 BLAST_RADIUS = {"low", "medium", "high", "unknown"}
 APPROVAL = {"human", "required_after_backup", "none"}
+
+def text_values(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, list):
+        for item in value:
+            yield from text_values(item)
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from text_values(item)
+
+def semantic_validate(data, evidence):
+    errors = []
+    facts = evidence.get("facts", {})
+    rules = evidence.get("evidence_rules", {})
+    containers = {
+        item.get("name"): item
+        for item in evidence.get("docker", {}).get("containers", [])
+        if item.get("name")
+    }
+
+    assessment = (data.get("executive_summary") or {}).get("assessment", "")
+    match = re.search(
+        r"runs\s+(\d+)\s+containers.*?across\s+(\d+)\s+compose\s+projects",
+        assessment,
+        flags=re.I | re.S,
+    )
+    if match:
+        reported_containers = int(match.group(1))
+        reported_projects = int(match.group(2))
+        if reported_containers != facts.get("container_count"):
+            errors.append("semantic: executive container count contradicts deterministic facts")
+        if reported_projects != facts.get("compose_project_count"):
+            errors.append("semantic: executive compose-project count contradicts deterministic facts")
+
+    all_sections = []
+    all_sections.extend(data.get("risks", []))
+    all_sections.extend(data.get("opportunities", []))
+    all_sections.extend(data.get("unknowns", []))
+    for phase in data.get("reset_plan", []):
+        all_sections.extend(phase.get("actions", []))
+
+    for item in all_sections:
+        if not isinstance(item, dict):
+            continue
+        item_id = item.get("id", "unknown")
+        combined = " ".join(text_values(item))
+        lowered = combined.lower()
+
+        for name, container in containers.items():
+            if name.lower() not in lowered:
+                continue
+            if not container.get("host_bindings") and re.search(
+                r"\b(host[- ]published|publish(?:es|ed)?\s+host|host\s+port)\b",
+                lowered,
+            ):
+                errors.append(
+                    f"semantic: {item_id} treats {name} as host-published without a host binding"
+                )
+            action_text = str(item.get("action") or "").strip().lower()
+            if container.get("state") != "running" and re.search(
+                rf"\bstop\s+{re.escape(name.lower())}\b",
+                action_text,
+            ):
+                errors.append(
+                    f"semantic: {item_id} proposes stopping {name} but current state is {container.get('state')}"
+                )
+
+        if not rules.get("dependency_graph_available", False):
+            if re.search(r"\bdependency\s+order\b", lowered):
+                errors.append(f"semantic: {item_id} infers dependency order without dependency evidence")
+
+        if not rules.get("per_service_resource_usage_available", False):
+            if re.search(r"\bright[- ]?siz", lowered):
+                errors.append(f"semantic: {item_id} proposes right-sizing without per-service resource evidence")
+
+        if not rules.get("volume_usage_classification_available", False):
+            if "unused volumes" in lowered:
+                errors.append(f"semantic: {item_id} classifies volumes as unused without usage evidence")
+
+        if not rules.get("secret_values_available", False):
+            secret_overclaim = re.search(
+                r"\b(?:live[- ]mode|active|valid|non-empty)\s+(?:api\s+)?(?:keys?|tokens?|secrets?|passwords?)\b"
+                r"|\b(?:carries|exposes)\b.{0,80}\b(?:keys?|tokens?|secrets?|passwords?)\b",
+                lowered,
+                flags=re.S,
+            )
+            if secret_overclaim and "variable name" not in lowered and "variable-name" not in lowered:
+                errors.append(f"semantic: {item_id} overclaims secret values from variable-name evidence")
+
+        if not rules.get("reverse_proxy_intent_available", False):
+            remediation_text = " ".join([
+                str(item.get("recommended_next_step") or ""),
+                str(item.get("action") or ""),
+            ]).lower()
+            if re.search(
+                r"\b(?:restrict|remap)\b.{0,80}\b(?:caddy|0\.0\.0\.0|bind|interface)\b",
+                remediation_text,
+                flags=re.S,
+            ):
+                errors.append(
+                    f"semantic: {item_id} prescribes reverse-proxy bind changes without routing intent evidence"
+                )
+
+    return errors
 
 def validate(data, evidence):
     errors = []
@@ -144,6 +250,7 @@ def validate(data, evidence):
     if any(x not in known_actions for x in summary.get("top_next_actions", [])):
         errors.append("executive_summary references unknown action")
 
+    errors.extend(semantic_validate(data, evidence))
     return errors
 
 def main():

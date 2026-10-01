@@ -123,7 +123,22 @@ Provides:
 
 V1 deliberately does not overwrite existing Agent prompts/models silently.
 
-### 8. Group OS Foundation
+### 8. Atlas Executive V1
+
+Path: `atlas-executive-v1/`
+
+Provides:
+
+- deterministic group executive brief;
+- decision + approval queue;
+- agent/team/project/runtime/FinOps visibility;
+- human delegation into canonical Project/Goal/Task state;
+- automatic approval-required flag for high/critical delegated work unless explicitly stricter;
+- read-only `atlas.executive.brief` runtime tool for future Atlas.DG.
+
+The executive brief is generated from canonical Group OS state, not LLM arithmetic.
+
+### 9. Group OS Foundation
 
 Path: `group-os-foundation/`
 
@@ -135,7 +150,7 @@ Provides:
 - CostCenter / Budget / UsageRecord;
 - initial Atlas internal organization bootstrap.
 
-### 9. Group OS Control Plane API
+### 10. Group OS Control Plane API
 
 Path: `group-os-control-plane/`
 
@@ -174,18 +189,13 @@ It does **not**:
 
 ## Next implementation block
 
-```text
-Atlas Executive
-  -> portfolio brief
-  -> decision queue
-  -> approval queue
-  -> agent/team status
-  -> budget/usage view
-  -> delegation into Project/Goal/Task
+The architectural foundation is now staged end-to-end. The next critical path is **integration into the real Atendimento.Center backend checkout and build verification**, followed by controlled database migration/staging activation.
 
-Parallel hardening:
-  -> pack-driven agent provisioning
-  -> preallocated RuntimeRun
-  -> idempotent queue retries
-  -> budget/concurrency controls
-```
+Parallel hardening remains:
+
+- pack-driven agent provisioning;
+- preallocated RuntimeRun;
+- idempotent queue retries;
+- budget/concurrency controls;
+- embeddings/reranking only after lexical Knowledge is proven.
+

@@ -60,6 +60,9 @@ REQUIRED_FILES=(
   "$RUNTIME_EXECUTION/patches/app.module.patch"
   "$RUNTIME_EXECUTION/patches/package.json.patch"
   "$RUNTIME_EXECUTION/patches/docker-compose.patch"
+  "$RUNTIME_EXECUTION/patches/deploy.sh.patch"
+  "$RUNTIME_EXECUTION/patches/env.example.patch"
+  "$RUNTIME_EXECUTION/patches/production-env.example.patch"
   "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"
   "$GROUP_OS/database/seeds/20261001_atlas_internal_org_v1.sql"
   "$GROUP_OS/prisma/group-os-models.prisma"
@@ -144,6 +147,21 @@ fi
 if ! grep -q "atlas_agent_worker:" "$TARGET/deploy/production/docker-compose.yml"; then
   git -C "$TARGET" apply --check "$RUNTIME_EXECUTION/patches/docker-compose.patch"
   git -C "$TARGET" apply "$RUNTIME_EXECUTION/patches/docker-compose.patch"
+fi
+
+if ! grep -q "atlas_agent_worker" "$TARGET/deploy/production/deploy.sh"; then
+  git -C "$TARGET" apply --check "$RUNTIME_EXECUTION/patches/deploy.sh.patch"
+  git -C "$TARGET" apply "$RUNTIME_EXECUTION/patches/deploy.sh.patch"
+fi
+
+if ! grep -q "ATLAS_REDIS_URL" "$TARGET/.env.example"; then
+  git -C "$TARGET" apply --check "$RUNTIME_EXECUTION/patches/env.example.patch"
+  git -C "$TARGET" apply "$RUNTIME_EXECUTION/patches/env.example.patch"
+fi
+
+if ! grep -q "ATLAS_AGENT_WORKER_CONCURRENCY" "$TARGET/deploy/production/.env.example"; then
+  git -C "$TARGET" apply --check "$RUNTIME_EXECUTION/patches/production-env.example.patch"
+  git -C "$TARGET" apply "$RUNTIME_EXECUTION/patches/production-env.example.patch"
 fi
 
 echo "Applying Atlas Group OS foundation schema..."

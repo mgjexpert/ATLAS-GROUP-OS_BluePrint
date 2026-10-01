@@ -13,6 +13,7 @@ import type {
 import { PolicyEngineService } from '../policy/policy-engine.service';
 import { ToolRegistryService } from '../tools/tool-registry.service';
 import { ToolRunnerService } from '../tools/tool-runner.service';
+import type { RuntimeActor } from '../runtime.types';
 
 @Injectable()
 export class RuntimeActionService {
@@ -28,6 +29,7 @@ export class RuntimeActionService {
     runId: string,
     toolCode: string,
     input: unknown,
+    initiatedBy: RuntimeActor,
   ) {
     const run = await this.prisma.runtimeRun.findFirst({
       where: {
@@ -103,6 +105,7 @@ export class RuntimeActionService {
       run.id,
       run.traceId,
       'tool.proposed',
+      initiatedBy,
       {
         actionId: action.id,
         toolCode: envelope.tool,
@@ -189,6 +192,8 @@ export class RuntimeActionService {
       run.id,
       run.traceId,
       'tool.started',
+      initiatedBy,
+      initiatedBy,
       {
         actionId: action.id,
         stepId: executionStep.id,
@@ -336,6 +341,7 @@ export class RuntimeActionService {
     runId: string,
     traceId: string,
     eventType: string,
+    actor: RuntimeActor,
     payload: Record<string, unknown>,
   ) {
     return this.prisma.runtimeEvent.create({
@@ -343,7 +349,8 @@ export class RuntimeActionService {
         runId,
         traceId,
         eventType,
-        actorType: 'runtime',
+        actorType: actor.type,
+        actorId: actor.id,
         payload: payload as Prisma.InputJsonValue,
       },
     });

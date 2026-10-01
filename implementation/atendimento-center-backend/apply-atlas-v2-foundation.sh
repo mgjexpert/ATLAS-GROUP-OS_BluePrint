@@ -8,6 +8,7 @@ RUNTIME="$ROOT/runtime-v2-slice1"
 RUNTIME_TOOLS="$ROOT/runtime-v2-slice2-tools-policy"
 RUNTIME_APPROVAL="$ROOT/runtime-v2-slice3-approval-engine"
 RUNTIME_MODEL_TOOLS="$ROOT/runtime-v2-slice4-model-tools"
+RUNTIME_EXECUTION="$ROOT/runtime-v2-slice5-execution-layer"
 GROUP_OS="$ROOT/group-os-foundation"
 GROUP_OS_API="$ROOT/group-os-control-plane"
 
@@ -54,6 +55,11 @@ REQUIRED_FILES=(
   "$RUNTIME_MODEL_TOOLS/src/runtime/tools/tool-registry.service.ts"
   "$RUNTIME_MODEL_TOOLS/src/runtime/approval/approval-engine.service.ts"
   "$RUNTIME_MODEL_TOOLS/database/migrations/20261001_atlas_runtime_v2_slice4_model_tools.sql"
+  "$RUNTIME_EXECUTION/database/migrations/20261001_atlas_runtime_v2_slice5_execution_jobs.sql"
+  "$RUNTIME_EXECUTION/prisma/runtime-v2-slice5-models.prisma"
+  "$RUNTIME_EXECUTION/patches/app.module.patch"
+  "$RUNTIME_EXECUTION/patches/package.json.patch"
+  "$RUNTIME_EXECUTION/patches/docker-compose.patch"
   "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"
   "$GROUP_OS/database/seeds/20261001_atlas_internal_org_v1.sql"
   "$GROUP_OS/prisma/group-os-models.prisma"
@@ -111,6 +117,35 @@ echo "Applying Runtime V2 Slice 4 model tool-calling..."
 cp -a "$RUNTIME_MODEL_TOOLS/src/runtime/." "$TARGET/src/runtime/"
 cp   "$RUNTIME_MODEL_TOOLS/database/migrations/20261001_atlas_runtime_v2_slice4_model_tools.sql"   "$TARGET/database/migrations/20261001_atlas_runtime_v2_slice4_model_tools.sql"
 
+echo "Applying Runtime V2 Slice 5 execution layer..."
+mkdir -p "$TARGET/src/execution-v2"
+cp -a "$RUNTIME_EXECUTION/src/execution-v2/." "$TARGET/src/execution-v2/"
+cp "$RUNTIME_EXECUTION/src/agent-worker.ts" "$TARGET/src/agent-worker.ts"
+cp   "$RUNTIME_EXECUTION/database/migrations/20261001_atlas_runtime_v2_slice5_execution_jobs.sql"   "$TARGET/database/migrations/20261001_atlas_runtime_v2_slice5_execution_jobs.sql"
+
+if ! grep -q '^model ExecutionJob {' "$TARGET/prisma/schema.prisma"; then
+  {
+    printf '\n// BEGIN ATLAS RUNTIME V2 SLICE 5\n'
+    cat "$RUNTIME_EXECUTION/prisma/runtime-v2-slice5-models.prisma"
+    printf '// END ATLAS RUNTIME V2 SLICE 5\n'
+  } >> "$TARGET/prisma/schema.prisma"
+fi
+
+if ! grep -q '"bullmq"' "$TARGET/package.json"; then
+  git -C "$TARGET" apply --check "$RUNTIME_EXECUTION/patches/package.json.patch"
+  git -C "$TARGET" apply "$RUNTIME_EXECUTION/patches/package.json.patch"
+fi
+
+if ! grep -q "ExecutionModule" "$TARGET/src/app.module.ts"; then
+  git -C "$TARGET" apply --check "$RUNTIME_EXECUTION/patches/app.module.patch"
+  git -C "$TARGET" apply "$RUNTIME_EXECUTION/patches/app.module.patch"
+fi
+
+if ! grep -q "atlas_agent_worker:" "$TARGET/deploy/production/docker-compose.yml"; then
+  git -C "$TARGET" apply --check "$RUNTIME_EXECUTION/patches/docker-compose.patch"
+  git -C "$TARGET" apply "$RUNTIME_EXECUTION/patches/docker-compose.patch"
+fi
+
 echo "Applying Atlas Group OS foundation schema..."
 mkdir -p "$TARGET/database/seeds"
 
@@ -145,7 +180,10 @@ echo "Atlas V2 foundation staged in target checkout."
 echo
 git -C "$TARGET" status --short
 
-if [[ -d "$TARGET/node_modules" ]]; then
+if [[ -d "$TARGET/node_modules" ]] && (
+  cd "$TARGET" &&
+  node -e "require.resolve('bullmq'); require.resolve('ioredis')"
+) >/dev/null 2>&1; then
   echo
   echo "Running Prisma generation and TypeScript build..."
   (
@@ -155,8 +193,9 @@ if [[ -d "$TARGET/node_modules" ]]; then
   )
 else
   echo
-  echo "node_modules is absent, so build verification was not run."
+  echo "Dependencies for the updated package are not installed."
   echo "In the normal development environment run:"
+  echo "  npm install"
   echo "  npm run prisma:generate"
   echo "  npm run build"
 fi

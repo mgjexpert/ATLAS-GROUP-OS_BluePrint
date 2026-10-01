@@ -46,7 +46,7 @@ fi
 install -d -m 0750 "$RUN" "$RUN/evidence" "$RUN/work" "$RUN/output"
 trap persist_diagnostics EXIT
 
-RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$"
+RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-${BASHPID}"
 printf '{"run_id":"%s","started_at":"%s"}\n'   "$RUN_ID" "$(date -u +%FT%TZ)"   > "$RUN/work/run-meta.json"
 
 cp -a --no-preserve=ownership "$EVIDENCE/." "$RUN/evidence/"

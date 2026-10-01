@@ -115,6 +115,11 @@ def main():
         "directories": directories,
         "repositories": repositories,
         "source_files": sorted(p.name for p in root.iterdir() if p.is_file()),
+        "evidence_aliases": {
+            "directories.json": ["srv-directories.txt", "opt-directories.txt"],
+            "srv-directories.json": ["srv-directories.txt"],
+            "opt-directories.json": ["opt-directories.txt"]
+        },
         "evidence_rules": {
             "confirmed_requires_source": True,
             "dns_mapping_available": False,

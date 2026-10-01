@@ -82,7 +82,7 @@ runuser -u "$ATLAS_USER" -- bash -c '
   cd "$MISSION"
 
   exec "$UV" run --project "$ENGINE" fcc-claude \
-    --bare \
+    --setting-sources local \
     --no-session-persistence \
     -p "$(cat "$PROMPT")" \
     --output-format json \

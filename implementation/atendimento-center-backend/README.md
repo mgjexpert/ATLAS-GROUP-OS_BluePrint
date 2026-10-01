@@ -54,7 +54,25 @@ Provides:
 
 Human approval never bypasses ToolGrant or current policy.
 
-### 4. Group OS Foundation
+### 4. Runtime V2 Slice 4 — Model Tool-Calling
+
+Path: `runtime-v2-slice4-model-tools/`
+
+Provides:
+
+- provider-native tool-call parsing behind ModelGateway;
+- only actively granted tools exposed to the model;
+- canonical Atlas tool names separated from provider wire aliases;
+- bounded model/tool loop;
+- read-only tool result continuation;
+- suspended run state for approval-required actions;
+- automatic model continuation after approved action execution;
+- automatic run cancellation after denied approval;
+- cumulative run usage/cost state.
+
+The model still never calls ToolRunner directly.
+
+### 5. Group OS Foundation
 
 Path: `group-os-foundation/`
 
@@ -66,7 +84,7 @@ Provides:
 - CostCenter / Budget / UsageRecord;
 - initial Atlas internal organization bootstrap.
 
-### 5. Group OS Control Plane API
+### 6. Group OS Control Plane API
 
 Path: `group-os-control-plane/`
 
@@ -106,13 +124,15 @@ It does **not**:
 ## Next implementation block
 
 ```text
-Model tool-calling
-  -> model proposes tool
-  -> trusted parser
-  -> same ActionEnvelope corridor
-  -> PolicyEngine
-  -> allow / approval / deny
+Execution Layer
+  -> BullMQ queues
+  -> durable run jobs
+  -> retries/idempotency
+  -> resumable workers
+  -> concurrency/budget controls
 
 Then:
-Execution queues + resumable agent runs
+Knowledge + Operational Memory
+  -> Agent Packs
+  -> Atlas Executive
 ```

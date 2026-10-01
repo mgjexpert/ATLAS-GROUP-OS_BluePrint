@@ -1,0 +1,45 @@
+--- a/src/runtime/runtime.module.ts
++++ b/src/runtime/runtime.module.ts
+@@ -1,11 +1,14 @@
+ import { HttpModule } from '@nestjs/axios';
+ import { Module } from '@nestjs/common';
+ import { RuntimeActionService } from './actions/runtime-action.service';
++import { ApprovalController } from './approval/approval.controller';
++import { ApprovalEngineService } from './approval/approval-engine.service';
+ import { ModelGateway } from './model/model-gateway.service';
+ import { OpenRouterProvider } from './model/providers/openrouter.provider';
+ import { PolicyEngineService } from './policy/policy-engine.service';
+ import { RuntimeController } from './runtime.controller';
+ import { RuntimeRunService } from './runtime-run.service';
++import { PortfolioUpdateTaskStatusTool } from './tools/builtin/portfolio-update-task-status.tool';
+ import { RuntimeInspectRunTool } from './tools/builtin/runtime-inspect-run.tool';
+ import { RuntimeToolsController } from './tools/runtime-tools.controller';
+ import { ToolRegistryService } from './tools/tool-registry.service';
+@@ -21,16 +24,19 @@
+   controllers: [
+     RuntimeController,
+     RuntimeToolsController,
++    ApprovalController,
+   ],
+   providers: [
+     OpenRouterProvider,
+     ModelGateway,
+     RuntimeRunService,
+     RuntimeInspectRunTool,
++    PortfolioUpdateTaskStatusTool,
+     ToolRegistryService,
+     PolicyEngineService,
+     ToolRunnerService,
+     RuntimeActionService,
++    ApprovalEngineService,
+   ],
+   exports: [
+     ModelGateway,
+@@ -38,6 +44,7 @@
+     ToolRegistryService,
+     PolicyEngineService,
+     RuntimeActionService,
++    ApprovalEngineService,
+   ],
+ })
+ export class RuntimeModule {}

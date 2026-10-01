@@ -14,6 +14,7 @@ ATLAS_ROOT="/srv/atlas"
 VENDOR_DIR="/srv/atlas/vendor"
 ENGINE_DIR="/srv/atlas/vendor/claude-code"
 WORKSPACE_DIR="/srv/atlas/workspaces/atlas-dev-00"
+EVAL_WORKSPACE_DIR="/srv/atlas/workspaces/atlas-dev-eval-v1"
 INVENTORY_DIR="/var/lib/atlas/inventory"
 LOG_DIR="/var/log/atlas"
 ENV_DIR="/etc/atlas"
@@ -62,7 +63,7 @@ if id -nG "$ATLAS_USER" | tr ' ' '\n' | grep -Eq '^(sudo|docker|adm|root)$'; the
   exit 4
 fi
 
-install -d -o "$ATLAS_USER" -g "$ATLAS_GROUP" -m 0750   "$ATLAS_ROOT" "$ATLAS_HOME" "$VENDOR_DIR" "$WORKSPACE_DIR"
+install -d -o "$ATLAS_USER" -g "$ATLAS_GROUP" -m 0750   "$ATLAS_ROOT" "$ATLAS_HOME" "$VENDOR_DIR" "$WORKSPACE_DIR" "$EVAL_WORKSPACE_DIR"
 install -d -o root -g "$ATLAS_GROUP" -m 0750   "$INVENTORY_DIR" "$INVENTORY_DIR/current"
 install -d -o "$ATLAS_USER" -g "$ATLAS_GROUP" -m 0750 "$LOG_DIR"
 install -d -o root -g "$ATLAS_GROUP" -m 0750 "$ENV_DIR"
@@ -112,13 +113,21 @@ runuser -u "$ATLAS_USER" -- env PATH="$ATLAS_HOME/.local/bin:/usr/local/sbin:/us
 echo "Installing systemd units and collector..."
 install -o root -g root -m 0755   "$ROOT_DIR/scripts/atlas-host-snapshot.sh"   /usr/local/sbin/atlas-host-snapshot
 install -o root -g root -m 0755   "$ROOT_DIR/scripts/run-first-mission.sh"   /usr/local/sbin/atlas-dev-first-mission
+install -o root -g root -m 0755   "$ROOT_DIR/scripts/run-evaluation-v1.sh"   /usr/local/sbin/atlas-dev-evaluation-v1
 install -o root -g root -m 0644   "$ROOT_DIR/systemd/atlas-agent-engine.service"   /etc/systemd/system/atlas-agent-engine.service
 install -o root -g root -m 0644   "$ROOT_DIR/systemd/atlas-host-snapshot.service"   /etc/systemd/system/atlas-host-snapshot.service
 install -o root -g root -m 0644   "$ROOT_DIR/systemd/atlas-host-snapshot.timer"   /etc/systemd/system/atlas-host-snapshot.timer
 install -o root -g root -m 0644   "$ROOT_DIR/systemd/atlas-dev-first-mission.service"   /etc/systemd/system/atlas-dev-first-mission.service
+install -o root -g root -m 0644   "$ROOT_DIR/systemd/atlas-dev-evaluation-v1.service"   /etc/systemd/system/atlas-dev-evaluation-v1.service
 
 install -d -o root -g "$ATLAS_GROUP" -m 0750 /usr/local/share/atlas
 install -o root -g "$ATLAS_GROUP" -m 0640   "$ROOT_DIR/prompts/atlas-dev-first-mission.md"   /usr/local/share/atlas/atlas-dev-first-mission.md
+
+install -d -o root -g "$ATLAS_GROUP" -m 0750 /usr/local/share/atlas/v1
+for file in collect-git-repositories.py build-compact-evidence.py atlas-dev-analysis-v1.py validate-materialize-v1.py; do
+  install -o root -g "$ATLAS_GROUP" -m 0750 "$ROOT_DIR/scripts/$file" "/usr/local/share/atlas/v1/$file"
+done
+install -o root -g "$ATLAS_GROUP" -m 0640   "$ROOT_DIR/prompts/atlas-dev-evaluation-v1.md"   /usr/local/share/atlas/v1/atlas-dev-evaluation-v1.md
 
 systemctl daemon-reload
 systemctl enable atlas-host-snapshot.timer
@@ -131,6 +140,7 @@ echo "2) Run: systemctl start atlas-host-snapshot.service"
 echo "3) Run: runuser -u atlas-agent -- npx --yes ecc-agentshield scan --format json"
 echo "4) Run: systemctl enable --now atlas-agent-engine.service"
 echo "5) Verify: curl -fsS http://127.0.0.1:8082/admin >/dev/null"
-echo "6) Run: systemctl start atlas-dev-first-mission.service"
+echo "6) Historical V0 only: systemctl start atlas-dev-first-mission.service"
+echo "7) Preferred validated evaluation: systemctl start atlas-dev-evaluation-v1.service"
 echo
 echo "Do not grant additional production privileges until the first mission is reviewed."

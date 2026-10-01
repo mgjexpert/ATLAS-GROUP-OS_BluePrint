@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { ActionEnvelope } from '../actions/action-envelope.types';
+import type {
+  ActionEnvelope,
+  PolicyDecision,
+} from '../actions/action-envelope.types';
 import type { RuntimeToolContext } from './tool.types';
 import { ToolRegistryService } from './tool-registry.service';
 
@@ -10,7 +13,14 @@ export class ToolRunnerService {
   async execute(
     envelope: ActionEnvelope,
     context: RuntimeToolContext,
+    decision: PolicyDecision,
   ): Promise<unknown> {
+    if (decision.result !== 'allow') {
+      throw new Error(
+        'ToolRunner refuses execution without an explicit allow decision.',
+      );
+    }
+
     const tool = this.registry.resolve(envelope.tool);
     const input = tool.validate(envelope.input);
 

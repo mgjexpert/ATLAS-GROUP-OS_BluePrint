@@ -13,6 +13,21 @@ SHARE="/usr/local/share/atlas/v1"
 LOG_DIR="/var/log/atlas"
 PYTHON="$ENGINE/.venv/bin/python"
 
+persist_diagnostics() {
+  local src
+  src="$RUN/model-work/usage.json"
+  if [[ -f "$src" ]]; then
+    cp "$src" "$LOG_DIR/atlas-dev-evaluation-v1-usage.json" || true
+    chmod 0640 "$LOG_DIR/atlas-dev-evaluation-v1-usage.json" || true
+  fi
+  src="$RUN/work/validation-report.json"
+  if [[ -f "$src" ]]; then
+    cp "$src" "$LOG_DIR/atlas-dev-evaluation-v1-validation.json" || true
+    chmod 0640 "$LOG_DIR/atlas-dev-evaluation-v1-validation.json" || true
+  fi
+}
+trap persist_diagnostics EXIT
+
 [[ "$(id -un)" == "$ATLAS_USER" ]] || { echo "Run as $ATLAS_USER through systemd." >&2; exit 1; }
 [[ -d "$EVIDENCE" ]] || { echo "Missing sanitized evidence snapshot." >&2; exit 2; }
 [[ -f "$ENV_FILE" ]] || { echo "Missing engine environment file." >&2; exit 3; }
@@ -51,10 +66,6 @@ cd /
 
 find "$RUN/output" "$RUN/work" "$RUN/model-work" -type d -exec chmod 0750 {} +
 find "$RUN/output" "$RUN/work" "$RUN/model-work" -type f -exec chmod 0640 {} +
-
-cp "$RUN/model-work/usage.json" "$LOG_DIR/atlas-dev-evaluation-v1-usage.json"
-cp "$RUN/work/validation-report.json" "$LOG_DIR/atlas-dev-evaluation-v1-validation.json"
-chmod 0640 "$LOG_DIR/atlas-dev-evaluation-v1-"*.json
 
 echo "Atlas.Dev evaluation V1 completed and validated."
 echo "Output: $RUN/output"

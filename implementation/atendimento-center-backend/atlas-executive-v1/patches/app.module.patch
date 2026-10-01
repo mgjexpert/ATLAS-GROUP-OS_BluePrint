@@ -1,0 +1,16 @@
+--- a/src/app.module.ts
++++ b/src/app.module.ts
+@@ -6,6 +6,7 @@
+ import { CrmModule } from './crm/crm.module';
+ import { DatabaseModule } from './database/database.module';
+ import { ExecutionModule } from './execution-v2/execution.module';
++import { ExecutiveModule } from './executive/executive.module';
+ import { GroupOsModule } from './group-os/group-os.module';
+ import { KnowledgeModule } from './knowledge/knowledge.module';
+@@ -26,6 +27,7 @@
+     DatabaseModule,
+     ExecutionModule,
++    ExecutiveModule,
+     IntegrationsModule,
+     KnowledgeModule,
+     AgentPacksModule,

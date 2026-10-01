@@ -1,0 +1,18 @@
+--- a/src/app.module.ts
++++ b/src/app.module.ts
+@@ -1,6 +1,7 @@
+ import { Module } from '@nestjs/common';
+ import { ConfigModule } from '@nestjs/config';
+ import { AgentsModule } from './agents/agents.module';
++import { AgentPacksModule } from './agent-packs/agent-packs.module';
+ import { AuthModule } from './auth/auth.module';
+ import { ConversationsModule } from './conversations/conversations.module';
+ import { CrmModule } from './crm/crm.module';
+@@ -27,6 +28,7 @@
+     ExecutionModule,
+     IntegrationsModule,
+     KnowledgeModule,
++    AgentPacksModule,
+     AuthModule,
+     ConversationsModule,
+     CrmModule,

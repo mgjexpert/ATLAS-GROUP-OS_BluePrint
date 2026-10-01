@@ -1,7 +1,7 @@
 # 09 — Roadmap
 
 ## Phase 0 — Architecture freeze & documentation
-Status: starting.
+Status: **complete for Runtime V2 implementation**.
 
 Deliver:
 - canonical blueprint;
@@ -11,6 +11,8 @@ Deliver:
 - Atlas.Dev-00 specification.
 
 ## Phase 1 — Atlas.Dev-00
+Status: **Level 0 operational; hardening continues as a parallel evaluation track.**
+
 Deliver:
 - agent engine on HQ VPS;
 - ECC pilot;
@@ -23,6 +25,8 @@ Exit condition:
 PDG receives verified Atlas Reset 2026 report.
 
 ## Phase 2 — Reset & Core consolidation
+Status: **parallel infrastructure track; no longer blocks Group OS implementation.**
+
 Deliver:
 - backups/recovery packages;
 - project classification;
@@ -33,6 +37,17 @@ Deliver:
 - Project Vault.
 
 ## Phase 3 — Group OS foundation
+Status: **ACTIVE — Architecture Freeze complete; Runtime V2 implementation starts now.**
+
+Implementation sequence:
+- ModelGateway + OpenRouterProvider;
+- Run / Step / Trace;
+- ToolRegistry + ActionEnvelope;
+- PolicyEngine + ApprovalEngine;
+- Execution Layer / queues;
+- Knowledge + Memory;
+- Agent Packs.
+
 Deliver:
 - Organization / BusinessUnit / Branch;
 - Project / Portfolio;

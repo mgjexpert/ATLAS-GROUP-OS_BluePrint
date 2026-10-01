@@ -1,0 +1,16 @@
+--- a/deploy/production/deploy.sh
++++ b/deploy/production/deploy.sh
+@@ -22,7 +22,7 @@
+ echo "Construindo Atlas Platform / Atendimento.Center backend e frontend..."
+-docker compose build --pull backend atlas_worker atlas_signals_worker frontend
++docker compose build --pull backend atlas_worker atlas_signals_worker atlas_agent_worker frontend
+ 
+ echo "Iniciando PostgreSQL local e Redis..."
+ docker compose up -d postgres redis
+@@ -71,6 +71,7 @@
+   docker compose logs -f backend
+   docker compose logs -f atlas_worker atlas_signals_worker
++  docker compose logs -f atlas_agent_worker
+   docker compose logs -f frontend
+   docker compose logs -f chatwoot chatwoot_worker
+   docker compose logs -f evolution

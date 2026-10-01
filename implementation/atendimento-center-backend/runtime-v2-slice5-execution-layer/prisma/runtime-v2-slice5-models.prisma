@@ -1,0 +1,26 @@
+model ExecutionJob {
+  id           String    @id @default(uuid()) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  queueName    String    @map("queue_name")
+  jobType      String    @map("job_type")
+  actorType    String    @map("actor_type")
+  actorId      String?   @map("actor_id")
+  status       String    @default("queued")
+  request      Json      @default("{}")
+  runId        String?   @map("run_id") @db.Uuid
+  attempts     Int       @default(0)
+  maxAttempts  Int       @default(1) @map("max_attempts")
+  errorMessage String?   @map("error_message") @db.Text
+  scheduledAt  DateTime  @default(now()) @map("scheduled_at") @db.Timestamptz(6)
+  startedAt    DateTime? @map("started_at") @db.Timestamptz(6)
+  finishedAt   DateTime? @map("finished_at") @db.Timestamptz(6)
+  metadata     Json      @default("{}")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([queueName, status, scheduledAt])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([runId])
+  @@map("execution_jobs")
+  @@schema("ai")
+}

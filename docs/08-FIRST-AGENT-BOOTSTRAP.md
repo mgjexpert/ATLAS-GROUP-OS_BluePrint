@@ -144,3 +144,15 @@ Only after V0 review consider:
 ## Deployment access
 
 GitHub can prepare and version the bootstrap. Executing it on the Atlas HQ VPS requires an authorized terminal/SSH path.
+
+
+## ECC hooks during V0
+
+ECC remains installed so Atlas.Dev can use its skills and commands, but the first observe/recommend mission explicitly sets:
+
+```text
+ECC_HOOKS_ENABLED=false
+ECC_HOOK_PROFILE=minimal
+```
+
+This prevents ECC lifecycle hooks from creating extra side effects during the first autonomous run. Hook automation may be enabled later under a reviewed permission profile.

@@ -124,7 +124,7 @@ install -d -o root -g "$ATLAS_GROUP" -m 0750 /usr/local/share/atlas
 install -o root -g "$ATLAS_GROUP" -m 0640   "$ROOT_DIR/prompts/atlas-dev-first-mission.md"   /usr/local/share/atlas/atlas-dev-first-mission.md
 
 install -d -o root -g "$ATLAS_GROUP" -m 0750 /usr/local/share/atlas/v1
-for file in collect-git-repositories.py build-compact-evidence.py atlas-dev-analysis-v1.py validate-analysis-v1.py materialize-reports-v1.py; do
+for file in collect-git-repositories.py build-compact-evidence.py atlas-dev-analysis-v1.py normalize-analysis-refs-v1.py validate-analysis-v1.py materialize-reports-v1.py; do
   install -o root -g "$ATLAS_GROUP" -m 0750 "$ROOT_DIR/scripts/$file" "/usr/local/share/atlas/v1/$file"
 done
 install -o root -g "$ATLAS_GROUP" -m 0640   "$ROOT_DIR/prompts/atlas-dev-evaluation-v1.md"   /usr/local/share/atlas/v1/atlas-dev-evaluation-v1.md

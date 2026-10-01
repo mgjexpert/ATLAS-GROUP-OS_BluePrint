@@ -5,6 +5,7 @@ TARGET="${1:-}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 RUNTIME="$ROOT/runtime-v2-slice1"
+RUNTIME_TOOLS="$ROOT/runtime-v2-slice2-tools-policy"
 GROUP_OS="$ROOT/group-os-foundation"
 GROUP_OS_API="$ROOT/group-os-control-plane"
 
@@ -40,6 +41,9 @@ fi
 REQUIRED_FILES=(
   "$RUNTIME/src/runtime/runtime.module.ts"
   "$RUNTIME/database/migrations/20261001_atlas_runtime_v2_slice1.sql"
+  "$RUNTIME_TOOLS/database/migrations/20261001_atlas_runtime_v2_slice2_tools_policy.sql"
+  "$RUNTIME_TOOLS/prisma/runtime-v2-slice2-models.prisma"
+  "$RUNTIME_TOOLS/patches/runtime.module.patch"
   "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"
   "$GROUP_OS/database/seeds/20261001_atlas_internal_org_v1.sql"
   "$GROUP_OS/prisma/group-os-models.prisma"
@@ -71,6 +75,21 @@ if ! grep -q "RuntimeModule" "$TARGET/src/app.module.ts"; then
   git -C "$TARGET" apply --check     "$RUNTIME/patches/app.module.patch"
   git -C "$TARGET" apply     "$RUNTIME/patches/app.module.patch"
 fi
+
+echo "Applying Runtime V2 Slice 2 tools/policy..."
+cp -a "$RUNTIME_TOOLS/src/runtime/." "$TARGET/src/runtime/"
+cp   "$RUNTIME_TOOLS/database/migrations/20261001_atlas_runtime_v2_slice2_tools_policy.sql"   "$TARGET/database/migrations/20261001_atlas_runtime_v2_slice2_tools_policy.sql"
+
+if ! grep -q '^model ToolDefinitionRecord {' "$TARGET/prisma/schema.prisma"; then
+  {
+    printf '\n// BEGIN ATLAS RUNTIME V2 SLICE 2\n'
+    cat "$RUNTIME_TOOLS/prisma/runtime-v2-slice2-models.prisma"
+    printf '// END ATLAS RUNTIME V2 SLICE 2\n'
+  } >> "$TARGET/prisma/schema.prisma"
+fi
+
+git -C "$TARGET" apply --check   "$RUNTIME_TOOLS/patches/runtime.module.patch"
+git -C "$TARGET" apply   "$RUNTIME_TOOLS/patches/runtime.module.patch"
 
 echo "Applying Atlas Group OS foundation schema..."
 mkdir -p "$TARGET/database/seeds"

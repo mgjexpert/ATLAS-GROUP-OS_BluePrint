@@ -1,0 +1,68 @@
+// Append after Runtime V2 Slice 1 models.
+
+model ToolDefinitionRecord {
+  id           String   @id @default(uuid()) @db.Uuid
+  code         String
+  version      String   @default("1")
+  description  String
+  capability   String
+  inputSchema  Json     @default("{}") @map("input_schema")
+  outputSchema Json?    @map("output_schema")
+  sideEffect   String   @default("none") @map("side_effect")
+  defaultRisk  String   @default("low") @map("default_risk")
+  enabled      Boolean  @default(true)
+  timeoutMs    Int      @default(15000) @map("timeout_ms")
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([code, version])
+  @@index([enabled, code])
+  @@map("tool_definitions")
+  @@schema("ai")
+}
+
+model ToolGrant {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  agentId     String   @map("agent_id") @db.Uuid
+  toolCode    String   @map("tool_code")
+  status      String   @default("active")
+  constraints Json     @default("{}")
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([tenantId, agentId, toolCode])
+  @@index([tenantId, agentId, status])
+  @@map("tool_grants")
+  @@schema("ai")
+}
+
+model RuntimeAction {
+  id                String    @id @default(uuid()) @db.Uuid
+  runId             String    @map("run_id") @db.Uuid
+  stepId            String?   @map("step_id") @db.Uuid
+  toolCode          String    @map("tool_code")
+  toolVersion       String?   @map("tool_version")
+  capability        String
+  input             Json      @default("{}")
+  sideEffect        String    @map("side_effect")
+  risk              String
+  policyResult      String?   @map("policy_result")
+  policyReason      String?   @map("policy_reason") @db.Text
+  status            String    @default("proposed")
+  approvalRequestId String?   @map("approval_request_id") @db.Uuid
+  idempotencyKey    String?   @map("idempotency_key")
+  output            Json?
+  errorMessage      String?   @map("error_message") @db.Text
+  proposedAt        DateTime  @default(now()) @map("proposed_at") @db.Timestamptz(6)
+  startedAt         DateTime? @map("started_at") @db.Timestamptz(6)
+  finishedAt        DateTime? @map("finished_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([runId, proposedAt])
+  @@index([status, proposedAt])
+  @@map("runtime_actions")
+  @@schema("ai")
+}

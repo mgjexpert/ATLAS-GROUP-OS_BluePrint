@@ -22,7 +22,24 @@ Provides:
 - durable model usage/latency/cost fields;
 - no tools or side effects.
 
-### 2. Group OS Foundation
+### 2. Runtime V2 Slice 2 — Tools + Policy
+
+Path: `runtime-v2-slice2-tools-policy/`
+
+Provides:
+
+- ToolRegistry;
+- per-agent ToolGrant lifecycle;
+- ActionEnvelope;
+- PolicyEngine;
+- read-only ToolRunner;
+- durable RuntimeAction lifecycle;
+- built-in `atlas.runtime.inspect_run`;
+- grant and execution audit.
+
+Side-effect tools are suspended as `approval_required` and are never executed in this slice.
+
+### 3. Group OS Foundation
 
 Path: `group-os-foundation/`
 
@@ -34,7 +51,7 @@ Provides:
 - CostCenter / Budget / UsageRecord;
 - initial Atlas internal organization bootstrap.
 
-### 3. Group OS Control Plane API
+### 4. Group OS Control Plane API
 
 Path: `group-os-control-plane/`
 
@@ -74,10 +91,15 @@ It does **not**:
 ## Next implementation block
 
 ```text
-ToolRegistry
-  -> ActionEnvelope
-  -> PolicyEngine
-  -> read-only ToolRunner
-  -> Run/Step/Audit
-  -> ApprovalEngine
+ApprovalEngine
+  -> durable ApprovalRequest
+  -> suspend Run/Action
+  -> human decision
+  -> policy re-check
+  -> resume Action
+  -> audit
+
+Then:
+Model tool-calling
+  -> same ActionEnvelope corridor
 ```

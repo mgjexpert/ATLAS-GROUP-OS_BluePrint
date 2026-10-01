@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   Post,
   UseGuards,
@@ -57,7 +58,7 @@ export class RuntimeToolsController {
     });
 
     if (!agent) {
-      throw new Error('Agente ativo não encontrado.');
+      throw new NotFoundException('Agente ativo não encontrado.');
     }
 
     const tool = this.registry.resolve(body.toolCode);

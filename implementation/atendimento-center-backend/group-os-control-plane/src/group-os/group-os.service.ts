@@ -90,18 +90,27 @@ export class GroupOsService {
   ) {
     const organizationId = this.organizationId(tenant);
 
-    if (body.businessUnitId) {
-      await this.requireBusinessUnit(organizationId, body.businessUnitId);
+    let businessUnitId = body.businessUnitId;
+    if (businessUnitId) {
+      await this.requireBusinessUnit(organizationId, businessUnitId);
     }
-    if (body.branchId) {
-      await this.requireBranch(organizationId, body.branchId);
+
+    let branchId = body.branchId;
+    if (branchId) {
+      const branch = await this.requireBranch(organizationId, branchId);
+      if (businessUnitId && branch.businessUnitId !== businessUnitId) {
+        throw new BadRequestException(
+          'branchId não pertence à businessUnitId informada.',
+        );
+      }
+      businessUnitId = businessUnitId ?? branch.businessUnitId;
     }
 
     const project = await this.prisma.portfolioProject.create({
       data: {
         organizationId,
-        businessUnitId: body.businessUnitId,
-        branchId: body.branchId,
+        businessUnitId,
+        branchId,
         code: body.code.trim().toUpperCase(),
         name: body.name.trim(),
         status: 'planned',
@@ -289,8 +298,9 @@ export class GroupOsService {
   ) {
     const organizationId = this.organizationId(tenant);
 
-    if (body.projectId) {
-      await this.requireProject(organizationId, body.projectId);
+    let projectId = body.projectId;
+    if (projectId) {
+      await this.requireProject(organizationId, projectId);
     }
 
     if (body.taskId) {
@@ -301,20 +311,21 @@ export class GroupOsService {
         throw new BadRequestException('taskId inválido para esta organização.');
       }
       if (
-        body.projectId &&
+        projectId &&
         task.projectId &&
-        body.projectId !== task.projectId
+        projectId !== task.projectId
       ) {
         throw new BadRequestException(
           'taskId e projectId pertencem a projetos diferentes.',
         );
       }
+      projectId = projectId ?? task.projectId ?? undefined;
     }
 
     const decision = await this.prisma.governanceDecision.create({
       data: {
         organizationId,
-        projectId: body.projectId,
+        projectId,
         taskId: body.taskId,
         title: body.title.trim(),
         proposal: body.proposal?.trim(),
@@ -349,10 +360,7 @@ export class GroupOsService {
         organizationId: this.organizationId(tenant),
         status: 'pending',
       },
-      orderBy: [
-        { riskLevel: 'desc' },
-        { createdAt: 'asc' },
-      ],
+      orderBy: { createdAt: 'asc' },
     });
   }
 

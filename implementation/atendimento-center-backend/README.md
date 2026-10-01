@@ -90,7 +90,24 @@ Provides:
 
 Queue delivery completion and RuntimeRun outcome are recorded separately: a queue job can complete successfully while the resulting RuntimeRun is suspended awaiting approval.
 
-### 6. Group OS Foundation
+### 6. Runtime V2 Slice 6 — Knowledge + Operational Memory
+
+Path: `runtime-v2-slice6-knowledge-memory/`
+
+Provides:
+
+- canonical `knowledge.sources/documents/chunks`;
+- deterministic SHA-256 document deduplication;
+- trusted text normalization/chunking;
+- PostgreSQL full-text retrieval;
+- organization/project-scoped search;
+- curated `portfolio.project_memories`;
+- Knowledge ingestion/search API;
+- read-only `atlas.knowledge.search` runtime tool.
+
+Relationship Memory remains unchanged and separate.
+
+### 7. Group OS Foundation
 
 Path: `group-os-foundation/`
 
@@ -102,7 +119,7 @@ Provides:
 - CostCenter / Budget / UsageRecord;
 - initial Atlas internal organization bootstrap.
 
-### 7. Group OS Control Plane API
+### 8. Group OS Control Plane API
 
 Path: `group-os-control-plane/`
 
@@ -142,14 +159,20 @@ It does **not**:
 ## Next implementation block
 
 ```text
-Execution hardening
+Agent Packs
+  -> versioned role/capability/knowledge bundles
+  -> model policy
+  -> tool grants
+  -> evaluation state
+
+Atlas Executive
+  -> portfolio brief
+  -> decision queue
+  -> approval queue
+  -> delegation to Atlas departments
+
+Parallel hardening:
   -> preallocated RuntimeRun
   -> idempotent queue retries
-  -> retry/backoff policy
   -> budget/concurrency controls
-
-Then:
-Knowledge + Operational Memory
-  -> Agent Packs
-  -> Atlas Executive
 ```

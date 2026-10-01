@@ -72,7 +72,25 @@ Provides:
 
 The model still never calls ToolRunner directly.
 
-### 5. Group OS Foundation
+### 5. Runtime V2 Slice 5 — Execution Layer
+
+Path: `runtime-v2-slice5-execution-layer/`
+
+Provides:
+
+- canonical Atlas queue names;
+- BullMQ `atlas.agent` producer;
+- durable `ExecutionJob` records;
+- queue payloads containing IDs only;
+- dedicated `atlas_agent_worker`;
+- bounded worker concurrency;
+- separate Atlas Redis logical DB;
+- async runtime enqueue/status API;
+- synchronous Runtime V2 path retained as fallback.
+
+Queue delivery completion and RuntimeRun outcome are recorded separately: a queue job can complete successfully while the resulting RuntimeRun is suspended awaiting approval.
+
+### 6. Group OS Foundation
 
 Path: `group-os-foundation/`
 
@@ -84,7 +102,7 @@ Provides:
 - CostCenter / Budget / UsageRecord;
 - initial Atlas internal organization bootstrap.
 
-### 6. Group OS Control Plane API
+### 7. Group OS Control Plane API
 
 Path: `group-os-control-plane/`
 
@@ -124,12 +142,11 @@ It does **not**:
 ## Next implementation block
 
 ```text
-Execution Layer
-  -> BullMQ queues
-  -> durable run jobs
-  -> retries/idempotency
-  -> resumable workers
-  -> concurrency/budget controls
+Execution hardening
+  -> preallocated RuntimeRun
+  -> idempotent queue retries
+  -> retry/backoff policy
+  -> budget/concurrency controls
 
 Then:
 Knowledge + Operational Memory

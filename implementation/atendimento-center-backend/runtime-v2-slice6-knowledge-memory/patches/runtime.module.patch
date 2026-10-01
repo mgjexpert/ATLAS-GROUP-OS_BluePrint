@@ -1,0 +1,18 @@
+--- a/src/runtime/runtime.module.ts
++++ b/src/runtime/runtime.module.ts
+@@ -7,6 +7,7 @@
+ import { PolicyEngineService } from './policy/policy-engine.service';
+ import { RuntimeController } from './runtime.controller';
+ import { RuntimeRunService } from './runtime-run.service';
++import { KnowledgeSearchTool } from './tools/builtin/knowledge-search.tool';
+ import { PortfolioUpdateTaskStatusTool } from './tools/builtin/portfolio-update-task-status.tool';
+ import { RuntimeInspectRunTool } from './tools/builtin/runtime-inspect-run.tool';
+ import { RuntimeToolsController } from './tools/runtime-tools.controller';
+@@ -30,6 +31,7 @@
+     ModelGateway,
+     RuntimeRunService,
+     RuntimeInspectRunTool,
++    KnowledgeSearchTool,
+     PortfolioUpdateTaskStatusTool,
+     ToolRegistryService,
+     PolicyEngineService,

@@ -93,7 +93,7 @@ runuser -u "$ATLAS_USER" -- bash -lc   "cd '$ENGINE_DIR' && '$UV' sync --frozen"
 
 # Claude Code is required by the V0 ECC profile. External installer execution
 # requires an explicit bootstrap flag so it cannot happen silently.
-if ! runuser -u "$ATLAS_USER" -- bash -lc   'command -v claude >/dev/null 2>&1'; then
+if ! runuser -u "$ATLAS_USER" -- env PATH="$ATLAS_HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" bash -lc   'command -v claude >/dev/null 2>&1'; then
   if [[ "${ATLAS_ALLOW_REMOTE_INSTALLERS:-0}" == "1" ]]; then
     echo "Installing Claude Code from Anthropic's official installer..."
     runuser -u "$ATLAS_USER" -- bash -lc       'curl -fsSL https://claude.ai/install.sh | bash'

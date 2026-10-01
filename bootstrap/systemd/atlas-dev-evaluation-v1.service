@@ -1,0 +1,29 @@
+[Unit]
+Description=Atlas.Dev-00 validated evaluation V1
+Requires=atlas-agent-engine.service
+After=atlas-agent-engine.service atlas-host-snapshot.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/sbin/atlas-dev-evaluation-v1
+TimeoutStartSec=20min
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=127.0.0.1
+IPAddressAllow=::1
+InaccessiblePaths=-/var/run/docker.sock -/run/docker.sock
+ReadOnlyPaths=/var/lib/atlas/inventory /etc/atlas /usr/local/share/atlas
+ReadWritePaths=/srv/atlas/workspaces/atlas-dev-eval-v1 /var/log/atlas /srv/atlas/home/.fcc

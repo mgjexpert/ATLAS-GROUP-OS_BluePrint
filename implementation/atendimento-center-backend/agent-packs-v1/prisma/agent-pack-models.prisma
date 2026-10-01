@@ -1,0 +1,81 @@
+model AgentPack {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  code           String
+  name           String
+  role           String
+  department     String?
+  description    String?  @db.Text
+  status         String   @default("active")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([organizationId, code])
+  @@index([organizationId, status])
+  @@map("agent_packs")
+  @@schema("ai")
+}
+
+model AgentPackVersion {
+  id               String    @id @default(uuid()) @db.Uuid
+  packId           String    @map("pack_id") @db.Uuid
+  version          Int
+  status           String    @default("draft")
+  instructions     String    @db.Text
+  modelPolicy      Json      @default("{}") @map("model_policy")
+  capabilityPolicy Json      @default("{}") @map("capability_policy")
+  evaluationStatus String    @default("pending") @map("evaluation_status")
+  approvedBy       String?   @map("approved_by")
+  approvedAt       DateTime? @map("approved_at") @db.Timestamptz(6)
+  metadata         Json      @default("{}")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([packId, version])
+  @@index([packId, status, version(sort: Desc)])
+  @@map("agent_pack_versions")
+  @@schema("ai")
+}
+
+model AgentPackTool {
+  id            String   @id @default(uuid()) @db.Uuid
+  packVersionId String   @map("pack_version_id") @db.Uuid
+  toolCode      String   @map("tool_code")
+  mode          String   @default("allowed")
+  constraints   Json     @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([packVersionId, toolCode])
+  @@map("agent_pack_tools")
+  @@schema("ai")
+}
+
+model AgentPackAssignment {
+  id            String   @id @default(uuid()) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  agentId       String   @map("agent_id") @db.Uuid
+  packVersionId String   @map("pack_version_id") @db.Uuid
+  status        String   @default("active")
+  assignedBy    String?  @map("assigned_by")
+  assignedAt    DateTime @default(now()) @map("assigned_at") @db.Timestamptz(6)
+  metadata      Json     @default("{}")
+  updatedAt     DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([tenantId, agentId])
+  @@index([tenantId, agentId, status])
+  @@map("agent_pack_assignments")
+  @@schema("ai")
+}
+
+model AgentPackKnowledgeBinding {
+  id            String   @id @default(uuid()) @db.Uuid
+  packVersionId String   @map("pack_version_id") @db.Uuid
+  sourceId      String   @map("source_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([packVersionId, sourceId])
+  @@index([packVersionId])
+  @@map("agent_pack_bindings")
+  @@schema("knowledge")
+}

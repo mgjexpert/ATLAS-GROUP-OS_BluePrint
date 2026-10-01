@@ -107,7 +107,23 @@ Provides:
 
 Relationship Memory remains unchanged and separate.
 
-### 7. Group OS Foundation
+### 7. Agent Packs V1
+
+Path: `agent-packs-v1/`
+
+Provides:
+
+- versioned role/mandate/instruction bundles;
+- model and capability policy snapshots;
+- reviewed/approved version lifecycle;
+- versioned allowed-tool lists;
+- per-agent active pack assignments;
+- unified runtime tool authorization from manual grants or approved packs;
+- governance audit for pack creation/review/approval/assignment.
+
+V1 deliberately does not overwrite existing Agent prompts/models silently.
+
+### 8. Group OS Foundation
 
 Path: `group-os-foundation/`
 
@@ -119,7 +135,7 @@ Provides:
 - CostCenter / Budget / UsageRecord;
 - initial Atlas internal organization bootstrap.
 
-### 8. Group OS Control Plane API
+### 9. Group OS Control Plane API
 
 Path: `group-os-control-plane/`
 
@@ -159,19 +175,16 @@ It does **not**:
 ## Next implementation block
 
 ```text
-Agent Packs
-  -> versioned role/capability/knowledge bundles
-  -> model policy
-  -> tool grants
-  -> evaluation state
-
 Atlas Executive
   -> portfolio brief
   -> decision queue
   -> approval queue
-  -> delegation to Atlas departments
+  -> agent/team status
+  -> budget/usage view
+  -> delegation into Project/Goal/Task
 
 Parallel hardening:
+  -> pack-driven agent provisioning
   -> preallocated RuntimeRun
   -> idempotent queue retries
   -> budget/concurrency controls

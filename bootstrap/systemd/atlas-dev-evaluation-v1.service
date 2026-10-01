@@ -25,5 +25,5 @@ IPAddressDeny=any
 IPAddressAllow=127.0.0.1
 IPAddressAllow=::1
 InaccessiblePaths=-/var/run/docker.sock -/run/docker.sock
-ReadOnlyPaths=/var/lib/atlas/inventory /etc/atlas /usr/local/share/atlas
+ReadOnlyPaths=/srv/atlas /var/lib/atlas/inventory /etc/atlas /usr/local/share/atlas
 ReadWritePaths=/srv/atlas/workspaces/atlas-dev-eval-v1 /var/log/atlas /srv/atlas/home/.fcc

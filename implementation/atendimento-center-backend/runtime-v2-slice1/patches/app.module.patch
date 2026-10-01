@@ -1,12 +1,18 @@
-diff --git a/src/app.module.ts b/src/app.module.ts
 --- a/src/app.module.ts
 +++ b/src/app.module.ts
-@@
+@@ -9,6 +9,7 @@
+ import { IntegrationsModule } from './integrations/integrations.module';
+ import { OnboardingModule } from './onboarding/onboarding.module';
  import { RelationshipModule } from './relationship/relationship.module';
 +import { RuntimeModule } from './runtime/runtime.module';
  import { SignalsModule } from './signals/signals.module';
-@@
+ import { SmmModule } from './smm/smm.module';
+ import { WebhooksModule } from './webhooks/webhooks.module';
+@@ -26,6 +27,7 @@
+     CrmModule,
      AgentsModule,
      RelationshipModule,
 +    RuntimeModule,
      SmmModule,
+     SignalsModule,
+     WebhooksModule,

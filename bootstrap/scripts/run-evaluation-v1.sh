@@ -26,7 +26,6 @@ persist_diagnostics() {
     chmod 0640 "$LOG_DIR/atlas-dev-evaluation-v1-validation.json" || true
   fi
 }
-trap persist_diagnostics EXIT
 
 [[ "$(id -un)" == "$ATLAS_USER" ]] || { echo "Run as $ATLAS_USER through systemd." >&2; exit 1; }
 [[ -d "$EVIDENCE" ]] || { echo "Missing sanitized evidence snapshot." >&2; exit 2; }
@@ -36,8 +35,20 @@ for f in build-compact-evidence.py atlas-dev-analysis-v1.py normalize-analysis-r
   [[ -f "$SHARE/$f" ]] || { echo "Missing $SHARE/$f" >&2; exit 4; }
 done
 
-rm -rf "$RUN"
+# Never expose stale diagnostics from a prior run.
+rm -f   "$LOG_DIR/atlas-dev-evaluation-v1-usage.json"   "$LOG_DIR/atlas-dev-evaluation-v1-validation.json"   2>/dev/null || true
+
+if ! rm -rf "$RUN"; then
+  echo "Cannot clean $RUN. Fix workspace ownership before retrying." >&2
+  exit 6
+fi
+
 install -d -m 0750 "$RUN" "$RUN/evidence" "$RUN/work" "$RUN/output"
+trap persist_diagnostics EXIT
+
+RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$"
+printf '{"run_id":"%s","started_at":"%s"}\n'   "$RUN_ID" "$(date -u +%FT%TZ)"   > "$RUN/work/run-meta.json"
+
 cp -a --no-preserve=ownership "$EVIDENCE/." "$RUN/evidence/"
 find "$RUN/evidence" -type d -exec chmod 0750 {} +
 find "$RUN/evidence" -type f -exec chmod 0640 {} +

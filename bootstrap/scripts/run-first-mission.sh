@@ -60,6 +60,7 @@ runuser -u "$ATLAS_USER" -- bash -c '
   set +a
 
   export HOME="$ATLAS_HOME"
+  export PATH="$ATLAS_HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   cd "$MISSION"
 
   exec "$UV" run --project "$ENGINE" fcc-claude -p "$(cat "$PROMPT")"     --output-format json     --max-turns 30     --allowedTools "Read,Glob,Grep,Write"     --disallowedTools "Bash,Edit,WebFetch,WebSearch"

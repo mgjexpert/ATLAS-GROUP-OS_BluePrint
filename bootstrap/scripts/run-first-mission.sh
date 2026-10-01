@@ -81,7 +81,10 @@ runuser -u "$ATLAS_USER" -- bash -c '
   export PATH="$ATLAS_HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   cd "$MISSION"
 
-  exec "$UV" run --project "$ENGINE" fcc-claude -p "$(cat "$PROMPT")" \
+  exec "$UV" run --project "$ENGINE" fcc-claude \
+    --bare \
+    --no-session-persistence \
+    -p "$(cat "$PROMPT")" \
     --output-format json \
     --max-turns 30 \
     --mcp-config "$MISSION/mcp-empty.json" \

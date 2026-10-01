@@ -119,13 +119,22 @@ def node_id(prefix, name):
 
 def mermaid_report(evidence):
     out = ["flowchart LR"]
-    for network, names in network_members(evidence).items():
+    members = network_members(evidence)
+
+    for container in sorted(evidence["docker"]["containers"], key=lambda x: x["name"]):
+        container_id = node_id("ctr", container["name"])
+        out.append(f'  {container_id}["{container["name"]}"]')
+
+    for network in sorted(members):
         network_id = node_id("net", network)
         out.append(f'  {network_id}["network: {network}"]')
+
+    for network, names in members.items():
+        network_id = node_id("net", network)
         for name in names:
             container_id = node_id("ctr", name)
-            out.append(f'  {container_id}["{name}"]')
             out.append(f"  {container_id} --- {network_id}")
+
     return "\n".join(out) + "\n"
 
 def security_report(analysis):

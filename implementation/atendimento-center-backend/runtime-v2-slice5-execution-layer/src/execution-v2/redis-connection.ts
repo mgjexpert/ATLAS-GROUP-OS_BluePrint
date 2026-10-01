@@ -13,6 +13,6 @@ export function createAtlasRedis(
   return new IORedis(url, {
     maxRetriesPerRequest: null,
     enableReadyCheck: true,
-    lazyConnect: false,
+    lazyConnect: true,
   });
 }

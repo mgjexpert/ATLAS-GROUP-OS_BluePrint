@@ -1,0 +1,46 @@
+--- a/src/runtime/runtime.module.ts
++++ b/src/runtime/runtime.module.ts
+@@ -1,9 +1,15 @@
+ import { HttpModule } from '@nestjs/axios';
+ import { Module } from '@nestjs/common';
++import { RuntimeActionService } from './actions/runtime-action.service';
+ import { ModelGateway } from './model/model-gateway.service';
+ import { OpenRouterProvider } from './model/providers/openrouter.provider';
++import { PolicyEngineService } from './policy/policy-engine.service';
+ import { RuntimeController } from './runtime.controller';
+ import { RuntimeRunService } from './runtime-run.service';
++import { RuntimeInspectRunTool } from './tools/builtin/runtime-inspect-run.tool';
++import { RuntimeToolsController } from './tools/runtime-tools.controller';
++import { ToolRegistryService } from './tools/tool-registry.service';
++import { ToolRunnerService } from './tools/tool-runner.service';
+ 
+ @Module({
+   imports: [
+@@ -12,15 +18,26 @@
+       maxRedirects: 3,
+     }),
+   ],
+-  controllers: [RuntimeController],
++  controllers: [
++    RuntimeController,
++    RuntimeToolsController,
++  ],
+   providers: [
+     OpenRouterProvider,
+     ModelGateway,
+     RuntimeRunService,
++    RuntimeInspectRunTool,
++    ToolRegistryService,
++    PolicyEngineService,
++    ToolRunnerService,
++    RuntimeActionService,
+   ],
+   exports: [
+     ModelGateway,
+     RuntimeRunService,
++    ToolRegistryService,
++    PolicyEngineService,
++    RuntimeActionService,
+   ],
+ })
+ export class RuntimeModule {}

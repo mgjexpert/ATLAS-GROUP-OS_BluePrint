@@ -336,62 +336,77 @@ export class RuntimeActionService {
       throw new ForbiddenException(reason);
     }
 
-    const approval = await this.prisma.approvalRequest.create({
-      data: {
-        organizationId: run.organizationId,
-        tenantId: tenant.id,
-        runId: run.id,
-        actionId,
-        status: 'pending',
-        riskLevel: envelope.risk,
-        requestedByType: 'agent',
-        requestedById: run.agentId,
-        approverClass: 'owner_or_admin',
-        reason: decision.reason,
-        expectedEffect: toolDescription,
-        reversibility: envelope.sideEffect,
-        policyIds: decision.policyIds as Prisma.InputJsonValue,
-        payload: {
-          toolCode: envelope.tool,
-          toolVersion: envelope.toolVersion,
-          capability: envelope.capability,
-          input: envelope.input,
-        } as Prisma.InputJsonValue,
-      },
-    });
-
     const approvalOrdinal = await this.nextOrdinal(run.id);
+    const expiresAt = new Date(
+      Date.now() + 24 * 60 * 60 * 1000,
+    );
 
-    await this.prisma.$transaction([
-      this.prisma.runtimeAction.update({
-        where: { id: actionId },
-        data: {
-          policyResult: 'approval_required',
-          policyReason: decision.reason,
-          status: 'suspended',
-          approvalRequestId: approval.id,
-        },
-      }),
-      this.prisma.runtimeStep.create({
-        data: {
-          runId: run.id,
-          ordinal: approvalOrdinal,
-          kind: 'approval',
-          status: 'suspended',
-          toolCode: envelope.tool,
-          approvalRequestId: approval.id,
-          inputSummary: {
+    const approval = await this.prisma.$transaction(
+      async (tx) => {
+        const created = await tx.approvalRequest.create({
+          data: {
+            organizationId: run.organizationId!,
+            tenantId: tenant.id,
+            runId: run.id,
             actionId,
-            risk: envelope.risk,
-            sideEffect: envelope.sideEffect,
-          } as Prisma.InputJsonValue,
-          outputSummary: {
-            approvalRequestId: approval.id,
-            approverClass: approval.approverClass,
-          } as Prisma.InputJsonValue,
-        },
-      }),
-    ]);
+            status: 'pending',
+            riskLevel: envelope.risk,
+            requestedByType: 'agent',
+            requestedById: run.agentId,
+            approverClass: 'owner_or_admin',
+            reason: decision.reason,
+            expectedEffect: toolDescription,
+            reversibility: envelope.sideEffect,
+            policyIds:
+              decision.policyIds as Prisma.InputJsonValue,
+            payload: {
+              toolCode: envelope.tool,
+              toolVersion: envelope.toolVersion,
+              capability: envelope.capability,
+              input: envelope.input,
+            } as Prisma.InputJsonValue,
+            expiresAt,
+          },
+        });
+
+        await tx.runtimeAction.update({
+          where: { id: actionId },
+          data: {
+            policyResult: 'approval_required',
+            policyReason: decision.reason,
+            status: 'suspended',
+            approvalRequestId: created.id,
+          },
+        });
+
+        await tx.runtimeStep.create({
+          data: {
+            runId: run.id,
+            ordinal: approvalOrdinal,
+            kind: 'approval',
+            status: 'suspended',
+            toolCode: envelope.tool,
+            approvalRequestId: created.id,
+            inputSummary: {
+              actionId,
+              risk: envelope.risk,
+              sideEffect: envelope.sideEffect,
+            } as Prisma.InputJsonValue,
+            outputSummary: {
+              approvalRequestId: created.id,
+              approverClass: created.approverClass,
+              expiresAt: created.expiresAt?.toISOString() ?? null,
+            } as Prisma.InputJsonValue,
+          },
+        });
+
+        return created;
+      },
+      {
+        isolationLevel:
+          Prisma.TransactionIsolationLevel.Serializable,
+      },
+    );
 
     await this.event(
       run.id,

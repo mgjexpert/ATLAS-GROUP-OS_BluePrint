@@ -1,0 +1,73 @@
+// Add "knowledge" to datasource.schemas before appending these models.
+
+model KnowledgeSource {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  scopeType      String   @map("scope_type")
+  scopeId        String?  @map("scope_id") @db.Uuid
+  kind           String
+  externalRef    String?  @map("external_ref")
+  label          String?
+  status         String   @default("active")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([organizationId, scopeType, scopeId, status])
+  @@map("sources")
+  @@schema("knowledge")
+}
+
+model KnowledgeDocument {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  sourceId       String   @map("source_id") @db.Uuid
+  title          String
+  content        String   @db.Text
+  fingerprint    String
+  version        Int      @default(1)
+  status         String   @default("active")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([organizationId, fingerprint])
+  @@index([sourceId, status, updatedAt(sort: Desc)])
+  @@map("documents")
+  @@schema("knowledge")
+}
+
+model KnowledgeChunk {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  documentId     String   @map("document_id") @db.Uuid
+  ordinal        Int
+  content        String   @db.Text
+  charCount      Int      @map("char_count")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([documentId, ordinal])
+  @@index([documentId, ordinal])
+  @@map("chunks")
+  @@schema("knowledge")
+}
+
+model ProjectMemory {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  projectId      String   @map("project_id") @db.Uuid
+  category       String
+  fact           String   @db.Text
+  confidence     Decimal  @default(1) @db.Decimal(5, 4)
+  importance     Int      @default(50)
+  sourceRef      String?  @map("source_ref")
+  status         String   @default("active")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([projectId, status, importance(sort: Desc)])
+  @@map("project_memories")
+  @@schema("portfolio")
+}

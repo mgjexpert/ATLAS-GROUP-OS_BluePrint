@@ -15,6 +15,7 @@ model RuntimeRun {
   provider       String?
   model          String?
   input          Json      @default("{}")
+  state          Json      @default("{}")
   output         Json?
   inputTokens    Int?      @map("input_tokens")
   outputTokens   Int?      @map("output_tokens")

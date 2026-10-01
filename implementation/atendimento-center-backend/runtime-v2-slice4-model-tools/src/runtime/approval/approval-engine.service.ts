@@ -241,11 +241,11 @@ export class ApprovalEngineService {
     });
 
     if (body.decision === 'denied') {
-      return {
-        approvalRequestId: result.request.id,
-        actionId: result.action.id,
-        status: 'denied',
-      };
+      return this.runtime.resume(
+        tenant,
+        result.run.id,
+        actor,
+      );
     }
 
     const actionResult =

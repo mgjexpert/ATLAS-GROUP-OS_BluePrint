@@ -1,0 +1,12 @@
+diff --git a/src/app.module.ts b/src/app.module.ts
+--- a/src/app.module.ts
++++ b/src/app.module.ts
+@@
+ import { RelationshipModule } from './relationship/relationship.module';
++import { RuntimeModule } from './runtime/runtime.module';
+ import { SignalsModule } from './signals/signals.module';
+@@
+     AgentsModule,
+     RelationshipModule,
++    RuntimeModule,
+     SmmModule,

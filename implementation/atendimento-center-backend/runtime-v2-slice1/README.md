@@ -5,6 +5,9 @@ Status: implementation-ready overlay
 Target upstream:
 `nexflowx-hub/atendimento.center-backend`
 
+Pinned upstream commit used for this overlay:
+`f47dc6a31db118e0047decd1ea50e6a97a30df48`
+
 Purpose:
 implement the first Atlas Intelligence Runtime V2 vertical slice without changing the existing Relationship Engine contract.
 
@@ -45,6 +48,11 @@ No tools, approvals, queues or side-effect execution are introduced in this slic
 8. Execute the smoke request documented below.
 
 ## Runtime API
+
+The slice exposes both creation and trace inspection:
+
+- `POST /api/v1/runtime/runs`
+- `GET /api/v1/runtime/runs/:id`
 
 Request:
 

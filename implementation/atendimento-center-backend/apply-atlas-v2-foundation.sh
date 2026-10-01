@@ -11,6 +11,7 @@ RUNTIME_MODEL_TOOLS="$ROOT/runtime-v2-slice4-model-tools"
 RUNTIME_EXECUTION="$ROOT/runtime-v2-slice5-execution-layer"
 RUNTIME_KNOWLEDGE="$ROOT/runtime-v2-slice6-knowledge-memory"
 AGENT_PACKS="$ROOT/agent-packs-v1"
+ATLAS_EXECUTIVE="$ROOT/atlas-executive-v1"
 GROUP_OS="$ROOT/group-os-foundation"
 GROUP_OS_API="$ROOT/group-os-control-plane"
 
@@ -74,6 +75,9 @@ REQUIRED_FILES=(
   "$AGENT_PACKS/prisma/agent-pack-models.prisma"
   "$AGENT_PACKS/patches/runtime.module.patch"
   "$AGENT_PACKS/patches/app.module.patch"
+  "$ATLAS_EXECUTIVE/src/executive/executive.module.ts"
+  "$ATLAS_EXECUTIVE/patches/runtime.module.patch"
+  "$ATLAS_EXECUTIVE/patches/app.module.patch"
   "$GROUP_OS/database/migrations/20261001_atlas_group_os_foundation_v1.sql"
   "$GROUP_OS/database/seeds/20261001_atlas_internal_org_v1.sql"
   "$GROUP_OS/prisma/group-os-models.prisma"
@@ -255,6 +259,21 @@ fi
 if ! grep -q "AgentPacksModule" "$TARGET/src/app.module.ts"; then
   git -C "$TARGET" apply --check "$AGENT_PACKS/patches/app.module.patch"
   git -C "$TARGET" apply "$AGENT_PACKS/patches/app.module.patch"
+fi
+
+echo "Applying Atlas Executive V1..."
+mkdir -p "$TARGET/src/executive"
+cp -a "$ATLAS_EXECUTIVE/src/executive/." "$TARGET/src/executive/"
+cp -a "$ATLAS_EXECUTIVE/src/runtime/." "$TARGET/src/runtime/"
+
+if ! grep -q "ExecutiveBriefTool" "$TARGET/src/runtime/runtime.module.ts"; then
+  git -C "$TARGET" apply --check "$ATLAS_EXECUTIVE/patches/runtime.module.patch"
+  git -C "$TARGET" apply "$ATLAS_EXECUTIVE/patches/runtime.module.patch"
+fi
+
+if ! grep -q "ExecutiveModule" "$TARGET/src/app.module.ts"; then
+  git -C "$TARGET" apply --check "$ATLAS_EXECUTIVE/patches/app.module.patch"
+  git -C "$TARGET" apply "$ATLAS_EXECUTIVE/patches/app.module.patch"
 fi
 
 echo

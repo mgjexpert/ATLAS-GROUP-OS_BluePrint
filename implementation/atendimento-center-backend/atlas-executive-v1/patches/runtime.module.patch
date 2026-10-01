@@ -1,0 +1,22 @@
+--- a/src/runtime/runtime.module.ts
++++ b/src/runtime/runtime.module.ts
+@@ -1,5 +1,6 @@
+ import { HttpModule } from '@nestjs/axios';
+ import { Module } from '@nestjs/common';
++import { ExecutiveModule } from '../executive/executive.module';
+ import { RuntimeActionService } from './actions/runtime-action.service';
+ import { ApprovalController } from './approval/approval.controller';
+@@ -9,6 +10,7 @@
+ import { RuntimeController } from './runtime.controller';
+ import { RuntimeRunService } from './runtime-run.service';
++import { ExecutiveBriefTool } from './tools/builtin/executive-brief.tool';
+ import { KnowledgeSearchTool } from './tools/builtin/knowledge-search.tool';
+@@ -17,6 +19,7 @@
+   imports: [
++    ExecutiveModule,
+     HttpModule.register({
+@@ -34,6 +37,7 @@
+     RuntimeRunService,
+     RuntimeInspectRunTool,
++    ExecutiveBriefTool,
+     KnowledgeSearchTool,

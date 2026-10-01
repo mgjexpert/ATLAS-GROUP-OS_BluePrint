@@ -184,11 +184,21 @@ def reset_report(analysis):
             ]
     return "\n".join(out) + "\n"
 
-def executive_report(analysis, usage):
+def executive_report(analysis, usage, evidence):
     risks = {x["id"]: x for x in analysis["risks"]}
     actions = {x["id"]: x for p in analysis["reset_plan"] for x in p["actions"]}
+    facts = evidence.get("facts", {})
+    state_counts = facts.get("container_state_counts", {})
     out = [
         "# Atlas.Dev-00 Evaluation V1 — Executive Summary", "",
+        "## Deterministic footprint", "",
+        f"- Containers: **{facts.get('container_count', 'UNKNOWN')}**",
+        f"- Running containers: **{state_counts.get('running', 0)}**",
+        f"- Exited/stopped containers: **{state_counts.get('exited', 0) + state_counts.get('stopped', 0)}**",
+        f"- Compose projects: **{facts.get('compose_project_count', 'UNKNOWN')}**",
+        f"- Docker networks: **{facts.get('network_count', 'UNKNOWN')}**",
+        f"- Docker volumes: **{facts.get('volume_count', 'UNKNOWN')}**",
+        "", "## Model assessment", "",
         analysis["executive_summary"]["assessment"], "", "## Top risks", "",
     ]
     for item_id in analysis["executive_summary"]["top_risks"]:
@@ -241,7 +251,7 @@ def main():
     (out / "security-observations.md").write_text(security_report(analysis))
     (out / "cost-opportunities.md").write_text(cost_report(analysis))
     (out / "ATLAS-RESET-2026.md").write_text(reset_report(analysis))
-    (out / "executive-summary.md").write_text(executive_report(analysis, usage))
+    (out / "executive-summary.md").write_text(executive_report(analysis, usage, evidence))
 
 if __name__ == "__main__":
     main()

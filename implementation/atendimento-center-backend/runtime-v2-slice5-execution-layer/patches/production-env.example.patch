@@ -1,0 +1,10 @@
+--- a/deploy/production/.env.example
++++ b/deploy/production/.env.example
+@@ -48,6 +48,7 @@
+ # Atlas execution workers
+ ATLAS_WORKER_INTERVAL_MS=5000
+ ATLAS_SIGNALS_WORKER_INTERVAL_MS=5000
++ATLAS_AGENT_WORKER_CONCURRENCY=1
+ 
+ # Atlas Growth / SMM provider API keys
+ 

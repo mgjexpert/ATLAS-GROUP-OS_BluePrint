@@ -107,7 +107,7 @@ if ! runuser -u "$ATLAS_USER" -- bash -lc   'command -v claude >/dev/null 2>&1';
 fi
 
 echo "Installing ECC 2.2.2 for the dedicated Atlas service user (Claude harness, core profile)..."
-runuser -u "$ATLAS_USER" -- bash -lc   'npx --yes ecc-universal@2.2.2 install --guided --harness claude --claude-scope user --claude-hooks standard --profile core --yes'
+runuser -u "$ATLAS_USER" -- bash -lc   'npx --yes ecc-universal@2.2.2 install --guided --harness claude --claude-scope user --claude-hooks standard --yes'
 
 echo "Installing systemd units and collector..."
 install -o root -g root -m 0755   "$ROOT_DIR/scripts/atlas-host-snapshot.sh"   /usr/local/sbin/atlas-host-snapshot

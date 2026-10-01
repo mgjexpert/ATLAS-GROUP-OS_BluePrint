@@ -137,7 +137,7 @@ cp   "$RUNTIME_MODEL_TOOLS/database/migrations/20261001_atlas_runtime_v2_slice4_
 
 echo "Applying Atlas V2 remaining foundation via semantic integrator..."
 ATLAS_SKIP_BUILD=1 \
-  "$ROOT/resume-atlas-v2-from-slice5.sh" "$TARGET"
+  bash "$ROOT/resume-atlas-v2-from-slice5.sh" "$TARGET"
 
 echo
 echo "Atlas V2 foundation staged in target checkout."

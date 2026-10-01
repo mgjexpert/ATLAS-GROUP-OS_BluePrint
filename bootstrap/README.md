@@ -71,3 +71,18 @@ The bootstrap script installs normal OS utilities but intentionally refuses to i
 Do not expose FCC port 8082 publicly. The provided environment binds it to `127.0.0.1`.
 
 Do not put API keys in this repository.
+
+
+## ECC Claude install note
+
+ECC 2.2.x treats `--profile` as a Kimi managed-content option. For the Claude Code harness, Atlas uses:
+
+```bash
+npx --yes ecc-universal@2.2.2 install --guided \
+  --harness claude \
+  --claude-scope user \
+  --claude-hooks standard \
+  --yes
+```
+
+Do not pass `--profile` unless Kimi is also selected.

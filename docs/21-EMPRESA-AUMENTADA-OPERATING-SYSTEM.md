@@ -165,21 +165,17 @@ flowchart LR
 
     F["FaceLove"]
     M["MyTrainX"]
-    E["e-com.casa"]
-    S["Saudavel.store"]
-    W["Walluxe"]
-    U["Ultrapet"]
-    OTHER["Future ventures / clients"]
+    L["LeveLab"]
+    OTHER["Other owned ventures / managed clients"]
 
-    DEV --> F
     DEV --> M
-    DEV --> E
+    DEV --> OTHER
+    CONTENT --> L
     CONTENT --> F
-    CONTENT --> M
-    GROWTH --> S
-    GROWTH --> E
-    RESEARCH --> W
-    SALES --> U
+    GROWTH --> F
+    GROWTH --> OTHER
+    RESEARCH --> OTHER
+    SALES --> OTHER
     ADMIN --> OTHER
     FINOPS --> F
     FINOPS --> M
@@ -288,6 +284,33 @@ Mandate:
 - margin visibility.
 
 This is operational FinOps, not a replacement for legal accounting.
+
+### Atlas.CX — Customer Experience — roadmap shared service
+
+The roadmap lists Atlas.CX as a later shared-service department.
+
+Expected mandate:
+
+- customer support operations;
+- service quality;
+- conversation handoff;
+- support workflows;
+- escalation discipline.
+
+This is a roadmap department, not part of the initial executive committee defined in document 02.
+
+### Atlas.Automation — Automation — roadmap shared service
+
+The roadmap lists Atlas.Automation as a later shared-service department.
+
+Expected mandate:
+
+- deterministic workflow automation;
+- n8n/workers;
+- repeatable process orchestration;
+- reduction of unnecessary LLM usage.
+
+This is a roadmap department, not part of the initial executive committee defined in document 02.
 
 ### Atlas.Governance — Governance / Safety
 

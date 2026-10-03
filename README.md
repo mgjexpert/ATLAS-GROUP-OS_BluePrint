@@ -45,6 +45,8 @@ Use existing agent harnesses, skills ecosystems, design systems and orchestratio
 
 ## Repository map
 
+Foundation and implementation baseline:
+
 - `docs/00-VISION.md` — mission and product definition
 - `docs/01-ARCHITECTURE.md` — technical architecture
 - `docs/02-ORGANIZATION-OPERATING-MODEL.md` — Group, departments, branches and agent workforce
@@ -56,8 +58,22 @@ Use existing agent harnesses, skills ecosystems, design systems and orchestratio
 - `docs/08-FIRST-AGENT-BOOTSTRAP.md` — first VPS agent implementation
 - `docs/09-ROADMAP.md` — phased delivery
 - `docs/10-RESEARCH-SOURCES.md` — repositories and research references
+- `docs/19-ATLAS-GROUP-OS-ARCHITECTURE-FREEZE.md` — frozen V2 Group OS architecture
+- `docs/20-ATLAS-INTELLIGENCE-RUNTIME-V2-CONTRACT.md` — Runtime V2 implementation contract
+
+Empresa Aumentada operating layer:
+
+- `docs/21-EMPRESA-AUMENTADA-OPERATING-SYSTEM.md` — consolidated organizational operating system
+- `docs/22-AGENT-ROLES-RESPONSIBILITIES-RACI.md` — roles, department responsibilities and RACI
+- `docs/23-AGENT-LIFECYCLE-AUTONOMY-GOVERNANCE.md` — agent lifecycle, autonomy and governance
+- `docs/24-BUSINESS-MISSION-EXECUTION-FLOW.md` — canonical mission flow from strategy to governed execution
+
+Supporting material:
+
 - `docs/adr/` — Architecture Decision Records
 - `config/` — initial machine-readable policies and agent packs
+
+The 21–24 documents consolidate the existing Blueprint and make the organizational operating model easier to execute. Where they introduce a more detailed decomposition than the earlier sources, they label it as an operational extension rather than retroactively claiming it was already defined.
 
 ## First operational milestone
 
